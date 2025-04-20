@@ -31,6 +31,17 @@
 
     <!-- Additional CSS for animations and features -->
     <style>
+
+.logout-btn {
+    background-color: #28a745
+    border-color #28a745;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .logout-btn:hover {
+        background-color: #dc3545 !important; /* Red on hover */
+        border-color: #dc3545 !important;
+    }
         /* Hero section animation */
         .hero-slide {
             transition: all 0.8s ease;
@@ -197,12 +208,16 @@
             </div>
             <div class="col-lg-3">
                 <div class="d-flex align-items-center justify-content-end">
-                    <a class="btn btn-primary btn-square rounded-circle me-2" href="#"><i class="fab fa-twitter"></i></a>
-                    <a class="btn btn-primary btn-square rounded-circle me-2" href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a class="btn btn-primary btn-square rounded-circle me-2" href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a class="btn btn-primary btn-square rounded-circle" href="#"><i class="fab fa-instagram"></i></a>
+                    <!-- Profile Icon -->
+                    <a class="btn btn-primary btn-square rounded-circle me-2" href="profile.html" title="Profile">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <!-- Logout Icon -->
+                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.html" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
                 </div>
-            </div>
+            </div> 
         </div>
     </div>
     <!-- Topbar End -->
@@ -746,12 +761,6 @@
 <h4 class="text-white mb-4">Get In Touch</h4>
 <p><i class="fa fa-phone-alt me-3"></i>019 091 091 91</p>
 <p><i class="fa fa-envelope me-3"></i>info@banglarkrishi.com</p>
-<div class="d-flex pt-2">
-    <a class="btn btn-outline-light btn-social rounded-circle" href=""><i class="fab fa-twitter"></i></a>
-    <a class="btn btn-outline-light btn-social rounded-circle ms-1" href=""><i class="fab fa-facebook-f"></i></a>
-    <a class="btn btn-outline-light btn-social rounded-circle ms-1" href=""><i class="fab fa-youtube"></i></a>
-    <a class="btn btn-outline-light btn-social rounded-circle ms-1" href=""><i class="fab fa-linkedin-in"></i></a>
-</div>
 </div>
 
 <div class="col-lg-3 col-md-6">
