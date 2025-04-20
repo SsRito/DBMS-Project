@@ -266,6 +266,11 @@
                         <!-- Add more rows as needed -->
                     </tbody>
                 </table>
+                <div class="mt-5">
+                    <h4 class="text-center">Grade Distribution</h4>
+                    <canvas id="gradeChart" height="50"></canvas>
+                </div>
+                
             
             </div>
         </div>
@@ -327,6 +332,71 @@
             });
         });
     </script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartCtx = document.getElementById('gradeChart').getContext('2d');
+        const gradeCounts = { A: 0, B: 0, C: 0 };
+    
+        const gradeChart = new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['A', 'B', 'C'],
+                datasets: [{
+                    label: 'Graded Products',
+                    data: [gradeCounts.A, gradeCounts.B, gradeCounts.C],
+                    backgroundColor: ['#5cb85c', '#f0ad4e', '#d9534f']
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    
+        // Function to update chart data
+        function updateGradeChart(grade) {
+            const g = grade.toUpperCase();
+            if (gradeCounts[g] !== undefined) {
+                gradeCounts[g]++;
+                gradeChart.data.datasets[0].data = [gradeCounts.A, gradeCounts.B, gradeCounts.C];
+                gradeChart.update();
+            }
+        }
+    
+        // Add inside your form submission JS (AFTER row is added)
+        document.getElementById('addGradingForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const values = Array.from(form.elements).reduce((obj, el) => {
+                if (el.name) obj[el.name] = el.value;
+                return obj;
+            }, {});
+    
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${values.standardGradeId}</td>
+                <td>${values.cropTypeId}</td>
+                <td>${values.quantity}</td>
+                <td>${values.grade}</td>
+                <td>${values.size}</td>
+                <td>${values.shape}</td>
+                <td>${values.colour}</td>
+                <td>${values.infestation}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning btn-edit">Edit</button>
+                    <button class="btn btn-sm btn-danger btn-delete">Delete</button>
+                </td>
+            `;
+            document.querySelector('#gradingTable tbody').appendChild(newRow);
+            attachRowActions(newRow);
+            updateGradeChart(values.grade); // <- UPDATE CHART HERE
+            form.reset();
+            bootstrap.Modal.getInstance(document.getElementById('addGradingModal')).hide();
+        });
+    </script>
+    
+
 
 
    
