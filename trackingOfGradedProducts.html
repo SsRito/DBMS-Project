@@ -9,10 +9,29 @@
     transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
-.logout-btn:hover {
-    background-color: #dc3545 !important; /* Red on hover */
-    border-color: #dc3545 !important;
-}
+    .logout-btn:hover {
+        background-color: #dc3545 !important; /* Red on hover */
+        border-color: #dc3545 !important;
+    }
+
+    .navbar-nav .nav-link, 
+    .navbar-nav .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-width: 150px;
+        text-align: center;
+    }
+
+    .navbar-nav .dropdown-menu .dropdown-item {
+        text-align: center;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background-color: orange;
+        color: white;
+    }
 
     </style>
     
@@ -87,22 +106,21 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav mx-auto py-0">
-                <a href="index.html" class="nav-item nav-link">Home</a>
-                <a href="gradingCriteria.html" class="nav-item nav-link"> Grading Criteria </a>
-                <a href="qualityReport.html" class="nav-item nav-link">Inspector Report</a>
-                <a href="qualityTrendAnalysis.html" class="nav-item nav-link">Quality Trend Analysis</a>
-                <a href="transportationTracking.html" class="nav-item nav-link"> Transportation</a>
-                <a href="trackingOfGradedProducts.html" class="nav-item nav-link">Tracking of Graded Product</a>
-                <a href="packagingTrackingSystem.html" class="nav-item nav-link">Packaging Tracking</a>
-                </div>
+            <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
+                <a href="index.html" class="nav-item nav-link px-3">Home</a>
+                <a href="gradingCriteria.html" class="nav-item nav-link px-3">Grading Criteria</a>
+                <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
+                <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
+                <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
-                <div class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">More</a>
-                    <div class="dropdown-menu m-0">                   
-                        <a href="about.html" class="dropdown-item active">About</a>
+                <div class="nav-item dropdown px-3">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
+                    <div class="dropdown-menu text-center">
                         <a href="service.html" class="dropdown-item">Service</a>
-                        <a href="contact.html" class="dropdown-item">Contact</a>
+                        <a href="contact.html" class="dropdown-item">Contact Us</a>
+                        <a href="about.html" class="dropdown-item">About</a>
                     </div>
                 </div>
             </div>
@@ -123,7 +141,7 @@
 </div>
 <!-- Hero End -->
 
-    <!-- Product Tracking Start -->
+<!-- For the first tracking section -->
 <div class="container-fluid py-5 bg-light">
     <div class="container">
         <div class="mx-auto text-center mb-4" style="max-width: 600px;">
@@ -132,33 +150,35 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-6">
-                <form id="trackingForm">
-                    <div class="input-group mb-3">
-                        <input type="text" id="productId" class="form-control" placeholder="Enter Product ID" required>
-                        <button type="submit" class="btn btn-primary">Track</button>
+                <div class="tracking-box">
+                    <form id="trackingForm">
+                        <div class="input-group mb-3">
+                            <input type="text" id="productId" class="form-control" placeholder="Enter Product ID" required>
+                            <button type="submit" class="btn btn-primary">Track</button>
+                        </div>
+                    </form>
+                    <div id="trackingResult" class="bg-white p-4 shadow-sm rounded d-none">
+                        <h5 class="text-success">Tracking Details</h5>
+                        <p><strong>Status:</strong> <span id="statusText">Fetching...</span></p>
+                        <p><strong>Last Updated:</strong> <span id="updateText">--</span></p>
                     </div>
-                </form>
-                <div id="trackingResult" class="bg-white p-4 shadow-sm rounded d-none">
-                    <h5 class="text-success">Tracking Details</h5>
-                    <p><strong>Status:</strong> <span id="statusText">Fetching...</span></p>
-                    <p><strong>Last Updated:</strong> <span id="updateText">--</span></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- Product Tracking End -->
 
-<!-- Live Location Map Start -->
+
+<!-- For the warehouse location section -->
 <div class="container my-5">
     <div class="text-center mb-4">
         <h2 class="text-primary">Live Warehouse Location & Info</h2>
         <p class="text-muted">Track warehouse locations and get updated operational details.</p>
     </div>
-    <div class="row g-4 align-items-start">
+    <div class="row g-4 align-items-stretch">
         <!-- Map -->
         <div class="col-lg-6">
-            <div class="bg-light rounded shadow-sm overflow-hidden">
+            <div class="tracking-box p-0 overflow-hidden">
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3650.1127498548625!2d90.40439467579405!3d23.81202998643144!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7965cb9fbd3%3A0x4ea14f91a96cb3e7!2sFarmers%20Market%20Dhaka!5e0!3m2!1sen!2sbd!4v1684212173468!5m2!1sen!2sbd"
                         width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
@@ -166,7 +186,7 @@
 
         <!-- Details -->
         <div class="col-lg-6">
-            <div class="bg-light p-4 rounded shadow-sm">
+            <div class="warehouse-box">
                 <h5>📍 Dhaka Central Warehouse</h5>
                 <p><strong>Status:</strong> Active</p>
                 <p><strong>Storage Capacity:</strong> 80% full</p>
@@ -183,37 +203,40 @@
     </div>
 </div>
 
-<!-- Live Location Map End -->
-<!-- Product Tracking with Hidden Map Start -->
+<!-- Update the product tracking with map section -->
 <div class="container-fluid py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="text-primary">Track Product Location</h2>
             <p class="text-muted">Enter the product ID to view its warehouse location(s).</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 align-items-stretch">
             <!-- Map Area (Initially Hidden) -->
             <div class="col-lg-6 d-none" id="mapContainer">
-                <div id="map" style="height: 400px; width: 100%;" class="rounded shadow-sm border"></div>
+                <div class="tracking-box p-0">
+                    <div id="map" style="height: 400px; width: 100%;" class="rounded border"></div>
+                </div>
             </div>
             <!-- Input + Results -->
             <div class="col-lg-6">
-                <form id="mapTrackingForm" class="mb-3">
-                    <input type="text" id="mapProductId" class="form-control" placeholder="Enter Product ID (e.g. AGRI123)" required>
-                    <button type="submit" class="btn btn-primary mt-3 w-100">Track Product</button>
-                </form>
-                <div id="mapResult" class="bg-light p-3 rounded shadow-sm d-none">
-                    <h5>Product Location Info</h5>
-                    <ul id="warehouseList" class="mb-0"></ul>
-                </div>
-                <div id="notFoundMessage" class="alert alert-warning d-none mt-3">
-                    No warehouse found for this Product ID.
+                <div class="tracking-box">
+                    <form id="mapTrackingForm" class="mb-3">
+                        <input type="text" id="mapProductId" class="form-control" placeholder="Enter Product ID (e.g. AGRI123)" required>
+                        <button type="submit" class="btn btn-primary mt-3 w-100">Track Product</button>
+                    </form>
+                    <div id="mapResult" class="bg-light p-3 rounded shadow-sm d-none">
+                        <h5>Product Location Info</h5>
+                        <ul id="warehouseList" class="mb-0"></ul>
+                    </div>
+                    <div id="notFoundMessage" class="alert alert-warning d-none mt-3">
+                        No warehouse found for this Product ID.
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- Product Tracking with Hidden Map End -->
+
 <script>
     let map;
     let markers = [];

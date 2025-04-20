@@ -191,7 +191,36 @@
 .logout-btn:hover {
     background-color: #dc3545 !important; /* Red on hover */
     border-color: #dc3545 !important;
+
+    .navbar-nav .nav-link, 
+    .navbar-nav .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-width: 150px;
+        text-align: center;
+    }
 }
+.navbar-nav .nav-link, 
+    .navbar-nav .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-width: 150px;
+        text-align: center;
+    }
+
+    .navbar-nav .dropdown-menu .dropdown-item {
+        text-align: center;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background-color: orange;
+        color: white;
+    }
+
     </style>
 </head>
 
@@ -230,7 +259,7 @@
 
 
        <!-- Navbar Start -->
-       <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
+    <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
         <a href="index.html" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
         </a>
@@ -239,31 +268,28 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav mx-auto py-0">
-                <a href="index.html" class="nav-item nav-link">Home</a>
-                <a href="about.html" class="nav-item nav-link">About</a>
-                <a href="service.html" class="nav-item nav-link">Service</a>
-                <div class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Tracking</a>
-                    <div class="dropdown-menu n-0">
-                        <a href="transportationTracking.html" class="dropdown-item active"> Transportation Tracking </a>
-                        <a href="trackingOfGradedProducts.html" class="dropdown-item">Tracking of Graded Product</a>
-                        <a href="packagingTrackingSystem.html" class="dropdown-item">Packaging Tracking</a>
+            <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
+                <a href="index.html" class="nav-item nav-link px-3">Home</a>
+                <a href="gradingCriteria.html" class="nav-item nav-link px-3">Grading Criteria</a>
+                <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
+                <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
+                <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
+                
+                <div class="nav-item dropdown px-3">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
+                    <div class="dropdown-menu text-center">
+                        <a href="service.html" class="dropdown-item">Service</a>
+                        <a href="contact.html" class="dropdown-item">Contact Us</a>
+                        <a href="about.html" class="dropdown-item">About</a>
                     </div>
                 </div>
-                <div class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Features</a>
-                    <div class="dropdown-menu m-0">
-                        <a href="gradingCriteria.html" class="dropdown-item active"> Grading Criteria </a>
-                        <a href="qualityReport.html" class="dropdown-item">Inspector Report</a>
-                        <a href="qualityTrendAnalysis.html" class="dropdown-item">Quality Trend Analysis</a>
-                    </div>
-                </div>
-                <a href="contact.html" class="nav-item nav-link">Contact</a>
             </div>
         </div>
     </nav>
     <!-- Navbar End -->
+
 
 
 <!-- Hero Start -->
