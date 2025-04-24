@@ -5,15 +5,19 @@
     $db_name = "agriculturesupplychain";
     $conn = "";
 
-    $conn = mysqli_connect($db_server,
+    try{
+        $conn = mysqli_connect($db_server,
                             $db_user,
                             $db_pass,
                             $db_name,
                             $conn);
+    }
+
+    catch(mysqli_sql_exception){
+        echo"Could not connect";
+    }
+
     if($conn){
         echo"You are connected";
-    }
-    else{
-        echo"Could not connect";
     }
 ?>
