@@ -1,25 +1,14 @@
 <?php
-    $db_server = "localhost";
-    $db_user = "root";
-    $db_pass = "";
-    $db_name = "agriculturesupplychain";
-    $conn = "";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
 
-    try{
-        $conn = mysqli_connect($db_server,
-                            $db_user,
-                            $db_pass,
-                            $db_name,
-                            $conn);
-    }
+$conn = mysqli_connect($servername, $username, $password, $database);
 
-    catch(mysqli_sql_exception){
-        echo"Could not connect";
-    }
-
-    if($conn){
-        echo"You are connected";
-    }
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
