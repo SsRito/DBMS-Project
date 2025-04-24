@@ -1,3 +1,6 @@
+<?php
+    include("databse.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
 
