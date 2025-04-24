@@ -1,25 +1,14 @@
 <?php
-    $db_server = "localhost";
-    $db_user = "root";
-    $db_pass = "";
-    $db_name = "agriculturesupplychain";
-    $conn = "";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
 
-    try{
-        $conn = mysqli_connect($db_server,
-                            $db_user,
-                            $db_pass,
-                            $db_name,
-                            $conn);
-    }
+$conn = mysqli_connect($servername, $username, $password, $database);
 
-    catch(mysqli_sql_exception){
-        echo"Could not connect";
-    }
-
-    if($conn){
-        echo"You are connected";
-    }
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -163,7 +152,7 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
                 <a href="index.html" class="nav-item nav-link px-3">Home</a>
-                <a href="gradingCriteria.html" class="nav-item nav-link px-3">Grading Criteria</a>
+                <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
                 <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
                 <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
