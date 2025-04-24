@@ -28,8 +28,8 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `crop` (
-  `cropID` varchar(50) NOT NULL,
-  `cropName` varchar(100) NOT NULL,
+  `cropID` varchar(6) NOT NULL,
+  `cropName` varchar(50) NOT NULL,
   `harvestedDate` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
