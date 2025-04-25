@@ -244,9 +244,9 @@ $result = mysqli_query($conn, $sql);
 }
 
 .product-table th {
-    background-color: #f8f9fa;
+    background-color: #28a745;
     font-weight: bold;
-    color: #495057;
+    color:rgb(255, 255, 255);
     position: sticky;
     top: 0;
 }
