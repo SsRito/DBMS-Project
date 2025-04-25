@@ -1,4 +1,5 @@
 <?php
+session_start(); // Start session to store user data
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -8,6 +9,39 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 
 if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = $_POST['password'];
+    
+    // Check if email exists in the database
+    $sql = "SELECT * FROM user WHERE email = '$email'";
+    $result = mysqli_query($conn, $sql);
+    
+    if (mysqli_num_rows($result) == 0) {
+        // Email doesn't exist
+        echo json_encode(['status' => 'error', 'message' => 'Email does not exist. Please sign up.']);
+        exit;
+    } else {
+        // Email exists, now verify password
+        $row = mysqli_fetch_assoc($result);
+        
+        if ($row['password'] == $password) { // In production, use password_verify() instead
+            // Password matches, login successful
+            $_SESSION['userID'] = $row['userID'];
+            $_SESSION['name'] = $row['name'];
+            $_SESSION['email'] = $row['email'];
+            
+            echo json_encode(['status' => 'success', 'message' => 'Login successful!']);
+            exit;
+        } else {
+            // Password incorrect
+            echo json_encode(['status' => 'error', 'message' => 'Incorrect password. Please try again.']);
+            exit;
+        }
+    }
 }
 ?>
 
@@ -32,7 +66,6 @@ if (!$conn) {
     <!-- Firebase JS SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-
     
     <style>
         body, html {
@@ -199,7 +232,7 @@ if (!$conn) {
         
         .login-image {
         width: 50%;
-        background: url(../img/Home.jpg) center center no-repeat;
+        background: url(C:\xampp\htdocs\DBMS-Project\img\Home.jpg) center center no-repeat;
         background-size: cover;
         }
     </style>
@@ -217,8 +250,8 @@ if (!$conn) {
             </div>
             
             <form class="login-form" id="loginForm">
-                <input type="email" placeholder="Email" class="form-control" required>
-                <input type="password" placeholder="Password" class="form-control" required>
+                <input type="email" name="email" id="email" placeholder="Email" class="form-control" required>
+                <input type="password" name="password" id="password" placeholder="Password" class="form-control" required>
             
                 <div class="forgot-password">
                     <a href="forgotPass.php">Forgot Password?</a>
@@ -245,21 +278,31 @@ if (!$conn) {
         document.getElementById('loginForm').addEventListener('submit', function (e) {
             e.preventDefault(); // Prevents the default form submission
     
-            // Example: You can put your actual login logic here
-            const email = document.querySelector('input[type="email"]').value;
-            const password = document.querySelector('input[type="password"]').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
     
-            // Dummy credentials
-        const dummyEmail = "ritomister@gmail.com";
-        const dummyPassword = "1234";
-
-        // Check if credentials match
-        if (email === dummyEmail && password === dummyPassword) {
-            // Redirect to index.html
-            window.location.href = "index.html";
-        } else {
-            alert("Invalid email or password. Try using:\nEmail: test@banglarkrishi.com\nPassword: pass1234");
-        }
+            // Send data to server using fetch API
+            fetch('login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Redirect to home page on successful login
+                    window.location.href = "index.html";
+                } else {
+                    // Show error message
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during login. Please try again.');
+            });
         });
     </script>
     
@@ -287,8 +330,12 @@ if (!$conn) {
           auth.signInWithPopup(provider)
             .then((result) => {
               const user = result.user;
+              // Here you would typically verify if this Google user exists in your database
+              // If not, you might want to create a new user record
+              
+              // For now, just redirect to home page
               alert("Welcome, " + user.displayName + "!");
-              window.location.href = "index.html"; // redirect to home
+              window.location.href = "index.html";
             })
             .catch((error) => {
               console.error("Google Sign-In Error:", error.message);
@@ -297,8 +344,6 @@ if (!$conn) {
         }
       </script>
       
-    
-
 </body>
 
 </html>
