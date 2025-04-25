@@ -9,6 +9,61 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
 }
+
+// Process form submissions
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Add new vehicle
+    if (isset($_POST['add_vehicle'])) {
+        $vehicleID = mysqli_real_escape_string($conn, $_POST['vehicleID']);
+        $vehicleType = mysqli_real_escape_string($conn, $_POST['vehicleType']);
+        $batchID = mysqli_real_escape_string($conn, $_POST['batchID']);
+        $location = mysqli_real_escape_string($conn, $_POST['location']);
+        
+        $sql = "INSERT INTO transportation_vehicles (vehicle_id, vehicle_type, batch_id, location) 
+                VALUES ('$vehicleID', '$vehicleType', '$batchID', '$location')";
+        
+        if (mysqli_query($conn, $sql)) {
+            echo "<script>alert('Vehicle added successfully!');</script>";
+        } else {
+            echo "<script>alert('Error adding vehicle: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+    
+    // Update vehicle
+    if (isset($_POST['update_vehicle'])) {
+        $vehicleID = mysqli_real_escape_string($conn, $_POST['editVehicleID']);
+        $vehicleType = mysqli_real_escape_string($conn, $_POST['editVehicleType']);
+        $batchID = mysqli_real_escape_string($conn, $_POST['editBatchID']);
+        $location = mysqli_real_escape_string($conn, $_POST['editLocation']);
+        
+        $sql = "UPDATE transportation_vehicles 
+                SET vehicle_type='$vehicleType', batch_id='$batchID', location='$location' 
+                WHERE vehicle_id='$vehicleID'";
+        
+        if (mysqli_query($conn, $sql)) {
+            echo "<script>alert('Vehicle updated successfully!');</script>";
+        } else {
+            echo "<script>alert('Error updating vehicle: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+    
+    // Delete vehicle
+    if (isset($_POST['delete_vehicle'])) {
+        $vehicleID = mysqli_real_escape_string($conn, $_POST['deleteVehicleID']);
+        
+        $sql = "DELETE FROM transportation_vehicles WHERE vehicle_id='$vehicleID'";
+        
+        if (mysqli_query($conn, $sql)) {
+            echo "<script>alert('Vehicle deleted successfully!');</script>";
+        } else {
+            echo "<script>alert('Error deleting vehicle: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+}
+
+// Fetch all vehicles
+$sql = "SELECT * FROM transportation_vehicles";
+$result = mysqli_query($conn, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -196,44 +251,34 @@ if (!$conn) {
         }
         
         .logout-btn {
-    background-color: #28a745
-    border-color #28a745;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
 
-.logout-btn:hover {
-    background-color: #dc3545 !important; /* Red on hover */
-    border-color: #dc3545 !important;
+        .logout-btn:hover {
+            background-color: #dc3545 !important; /* Red on hover */
+            border-color: #dc3545 !important;
+        }
 
-    .navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
-}
-.navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
+        }
 
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
-
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
-
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
+            color: white;
+        }
     </style>
 </head>
 
@@ -270,8 +315,7 @@ if (!$conn) {
     </div>
     <!-- Topbar End -->
 
-
-       <!-- Navbar Start -->
+    <!-- Navbar Start -->
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
         <a href="index.html" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
@@ -303,20 +347,17 @@ if (!$conn) {
     </nav>
     <!-- Navbar End -->
 
-
-
-<!-- Hero Start -->
-<div class="container-fluid bg-primary py-5 bg-hero-transportation mb-5">
-    <div class="container h-100 d-flex align-items-center justify-content-center">
-        <div class="row">
-            <div class="col-12 text-center">
-                <h1 class="display-1 text-white mb-0"></h1>
+    <!-- Hero Start -->
+    <div class="container-fluid bg-primary py-5 bg-hero-transportation mb-5">
+        <div class="container h-100 d-flex align-items-center justify-content-center">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-1 text-white mb-0"></h1>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Hero End -->
-
+    <!-- Hero End -->
 
     <!-- Tracking System Start -->
     <div class="container-fluid py-5">
@@ -495,9 +536,185 @@ if (!$conn) {
     </div>
     <!-- Tracking System End -->
 
+    <!-- Transportation Tracking Table Start -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="mb-5 text-center">
+                    <h1 class="display-5">Transportation Tracking</h1>
+                    <p class="fs-5 text-muted">Monitor the real-time status of all vehicles in your supply chain</p>
+                </div>
+            </div>
+        </div>
 
-    <!-- Footer Start -->
-    <div class="container-fluid bg-footer bg-primary text-white mt-5">
+        <!-- Search Bar -->
+        <div class="row mb-4">
+            <div class="col-md-6 offset-md-3">
+                <input type="text" id="transportTableSearch" class="form-control" placeholder="Search transportation records...">
+            </div>
+        </div>
+
+        <!-- Add New Vehicle Button -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+                    <i class="fas fa-plus"></i> Add New Vehicle
+                </button>
+            </div>
+        </div>
+
+        <!-- Transportation Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="transportationTable">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Vehicle ID</th>
+                        <th>Vehicle Type</th>
+                        <th>Batch ID</th>
+                        <th>Location</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (mysqli_num_rows($result) > 0) {
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo "<tr>";
+                            echo "<td>" . $row['vehicle_id'] . "</td>";
+                            echo "<td>" . $row['vehicle_type'] . "</td>";
+                            echo "<td>" . $row['batch_id'] . "</td>";
+                            echo "<td>" . $row['location'] . "</td>";
+                            echo "<td class='actions-column'>
+                                <button class='btn btn-warning btn-sm' onclick='editVehicle(\"" . $row['vehicle_id'] . "\", \"" . $row['vehicle_type'] . "\", \"" . $row['batch_id'] . "\", \"" . $row['location'] . "\")'>
+                                    <i class='fas fa-edit'></i>
+                                </button>
+                                <button class='btn btn-danger btn-sm' onclick='confirmDelete(\"" . $row['vehicle_id'] . "\")'>
+                                    <i class='fas fa-trash'></i>
+                                </button>
+                            </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='5' class='text-center'>No vehicles found</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div class="modal fade" id="addVehicleModal" tabindex="-1" aria-labelledby="addVehicleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addVehicleModalLabel">Add New Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="" id="addVehicleForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="vehicleID" class="form-label">Vehicle ID</label>
+                            <input type="text" class="form-control" id="vehicleID" name="vehicleID" placeholder="e.g. TRK-1001" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleType" class="form-label">Vehicle Type</label>
+                            <select class="form-control" id="vehicleType" name="vehicleType" required>
+                                <option value="">Select Vehicle Type</option>
+                                <option value="Truck">Truck</option>
+                                <option value="Van">Van</option>
+                                <option value="Pickup">Pickup</option>
+                                <option value="Mini Truck">Mini Truck</option>
+                                <option value="Refrigerated Van">Refrigerated Van</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="batchID" class="form-label">Batch ID</label>
+                            <input type="text" class="form-control" id="batchID" name="batchID" placeholder="e.g. BCH-5432" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" placeholder="e.g. Dhaka Distribution Center" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="add_vehicle" class="btn btn-primary">Add Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1" aria-labelledby="editVehicleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="editVehicleModalLabel">Edit Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="" id="editVehicleForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editVehicleID" class="form-label">Vehicle ID</label>
+                            <input type="text" class="form-control" id="editVehicleID" name="editVehicleID" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editVehicleType" class="form-label">Vehicle Type</label>
+                            <select class="form-control" id="editVehicleType" name="editVehicleType" required>
+                                <option value="Truck">Truck</option>
+                                <option value="Van">Van</option>
+                                <option value="Pickup">Pickup</option>
+                                <option value="Mini Truck">Mini Truck</option>
+                                <option value="Refrigerated Van">Refrigerated Van</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBatchID" class="form-label">Batch ID</label>
+                            <input type="text" class="form-control" id="editBatchID" name="editBatchID" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLocation" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="editLocation" name="editLocation" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_vehicle" class="btn btn-warning">Update Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="" id="deleteVehicleForm">
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete vehicle <strong id="deleteVehicleIDText"></strong>?</p>
+                        <p>This action cannot be undone.</p>
+                        <input type="hidden" id="deleteVehicleID" name="deleteVehicleID">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="delete_vehicle" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Delete Confirmation Modal End -->
+
+        <!-- Footer Start -->
+        <div class="container-fluid bg-footer bg-primary text-white mt-5">
         <!-- Footer content remains the same as in the original template -->
     </div>
     <div class="container-fluid bg-dark text-white py-4">
@@ -506,11 +723,9 @@ if (!$conn) {
         </div>
     </div>
     <!-- Footer End -->
-
-
+     
     <!-- Back to Top -->
     <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
-
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -521,179 +736,165 @@ if (!$conn) {
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
     
     <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.min.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
     
+    <!-- Custom JavaScript -->
     <script>
-        // Initialize map
-        const map = L.map('map').setView([23.8103, 90.4125], 8); // Center on Bangladesh
-        
-        // Add tile layer (OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Define origin, destination and current location
-        const origin = [23.8103, 90.4125]; // Dhaka
-        const destination = [22.3569, 91.7832]; // Chittagong
-        const currentPosition = [24.0078, 89.7500]; // Tangail (example current position)
-        
-        // Add markers for origin and destination
-        const originMarker = L.marker(origin).addTo(map)
-            .bindPopup('Origin: Dhaka Farm')
-            .openPopup();
-            
-        const destinationMarker = L.marker(destination).addTo(map)
-            .bindPopup('Destination: Chittagong Market');
-        
-        // Add current position marker with custom icon
-        const truckIcon = L.icon({
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-icon.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-shadow.png',
-            shadowSize: [41, 41]
-        });
-        
-        const currentMarker = L.marker(currentPosition, {icon: truckIcon}).addTo(map)
-            .bindPopup('Current Location: Truck #T-1234');
-        
-        // Draw the route line
-        const routePoints = [
-            origin,
-            [23.9908, 90.2501], // Savar
-            [24.0078, 89.7500], // Tangail (current position)
-            [24.3752, 88.9746], // Natore
-            [24.3636, 88.6241], // Rajshahi
-            [23.1669, 89.2167], // Jessore
-            destination
-        ];
-        
-        // Split into completed route and remaining route
-        const completedRoute = routePoints.slice(0, 3); // Up to current position
-        const remainingRoute = routePoints.slice(2); // From current position to destination
-        
-        // Draw completed route in green
-        const completedPath = L.polyline(completedRoute, {
-            color: '#5CB85C',
-            weight: 5,
-            opacity: 0.7
-        }).addTo(map);
-        
-        // Draw remaining route in gray
-        const remainingPath = L.polyline(remainingRoute, {
-            color: '#999',
-            weight: 5,
-            dashArray: '10, 10',
-            opacity: 0.7
-        }).addTo(map);
-        
-        // Set the status progress bar width
-        document.getElementById('statusProgress').style.width = '50%'; // 50% complete (in transit)
-        
-        // Function to search for a shipment
+        // Function to search shipment
         function searchShipment() {
             const trackingNumber = document.getElementById('trackingNumber').value;
-            if (trackingNumber) {
-                // In a real application, you would fetch the shipment data from a server here
-                alert('Tracking information found for: ' + trackingNumber);
-                // For now we just keep displaying the demo data
-            } else {
-                alert('Please enter a tracking number');
-            }
+            alert('Searching for shipment: ' + trackingNumber);
+            // Here you would typically make an AJAX call to your backend to get shipment details
         }
         
-        // Function to select a vehicle
+        // Function to select vehicle
         function selectVehicle(vehicleId) {
-            // Remove active class from all vehicles
+            // Remove active class from all vehicle items
             document.querySelectorAll('.vehicle-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Add active class to selected vehicle
+            // Add active class to the selected vehicle
             document.querySelectorAll('.vehicle-item')[vehicleId - 1].classList.add('active');
             
-            // In a real application, you would fetch the vehicle data and update the map
-            if (vehicleId === 1) {
-                // Current demo truck
-                currentMarker.setLatLng(currentPosition);
-                map.panTo(currentPosition);
-                document.getElementById('currentLocation').textContent = 'Tangail District';
-                document.getElementById('distanceTraveled').textContent = '78 km';
-                document.getElementById('remainingDistance').textContent = '142 km';
-                document.getElementById('estimatedArrival').textContent = 'April 17, 2025 - 14:30';
-            } else if (vehicleId === 2) {
-                // Another truck at different location
-                const newPosition = [23.9908, 90.2501]; // Savar
-                currentMarker.setLatLng(newPosition);
-                map.panTo(newPosition);
-                document.getElementById('currentLocation').textContent = 'Savar, Dhaka';
-                document.getElementById('distanceTraveled').textContent = '25 km';
-                document.getElementById('remainingDistance').textContent = '195 km';
-                document.getElementById('estimatedArrival').textContent = 'April 18, 2025 - 08:15';
-            } else if (vehicleId === 3) {
-                // Another truck at different location
-                const newPosition = [23.1669, 89.2167]; // Jessore
-                currentMarker.setLatLng(newPosition);
-                map.panTo(newPosition);
-                document.getElementById('currentLocation').textContent = 'Jessore District';
-                document.getElementById('distanceTraveled').textContent = '180 km';
-                document.getElementById('remainingDistance').textContent = '40 km';
-                document.getElementById('estimatedArrival').textContent = 'April 16, 2025 - 18:45';
-            }
+            // Update map marker and information based on selected vehicle
+            updateMapForVehicle(vehicleId);
         }
         
-        // Demo live updates simulation
-        let movingForward = true;
-        const simulateMovement = () => {
-            // Get current position
-            const pos = currentMarker.getLatLng();
-            
-            // Add small random movement
-            let newLat, newLng;
-            if (movingForward) {
-                // Move towards Rajshahi
-                newLat = pos.lat + (Math.random() * 0.002);
-                newLng = pos.lng - (Math.random() * 0.003);
-                
-                // If reached Rajshahi area, start moving towards Jessore
-                if (newLng < 89.0) {
-                    movingForward = false;
-                }
-            } else {
-                // Move towards Jessore
-                newLat = pos.lat - (Math.random() * 0.004);
-                newLng = pos.lng + (Math.random() * 0.001);
+        // Function to update map for selected vehicle
+        function updateMapForVehicle(vehicleId) {
+            // Clear existing markers
+            if (markers) {
+                markers.forEach(marker => map.removeLayer(marker));
             }
             
-            // Update marker position
-            currentMarker.setLatLng([newLat, newLng]);
+            // Add new marker based on vehicle
+            let position;
+            let popupContent;
             
-            // Update completed and remaining routes
-            const newCurrentPos = [newLat, newLng];
-            const newCompletedRoute = [...completedRoute.slice(0, -1), newCurrentPos];
-            const newRemainingRoute = [newCurrentPos, ...remainingRoute.slice(1)];
+            switch(vehicleId) {
+                case 1:
+                    position = [24.2513, 89.9167]; // Tangail
+                    popupContent = "<b>Truck #T-1234</b><br>Status: On Route<br>Driver: Mohammad Rahman";
+                    document.getElementById('currentLocation').textContent = "Tangail District";
+                    document.getElementById('distanceTraveled').textContent = "78 km";
+                    document.getElementById('estimatedArrival').textContent = "April 17, 2025 - 14:30";
+                    document.getElementById('remainingDistance').textContent = "142 km";
+                    break;
+                case 2:
+                    position = [23.7104, 90.4074]; // Dhaka
+                    popupContent = "<b>Truck #T-5678</b><br>Status: Loading<br>Driver: Kamal Hossain";
+                    document.getElementById('currentLocation').textContent = "Dhaka Central Depot";
+                    document.getElementById('distanceTraveled').textContent = "0 km";
+                    document.getElementById('estimatedArrival').textContent = "April 18, 2025 - 10:15";
+                    document.getElementById('remainingDistance').textContent = "220 km";
+                    break;
+                case 3:
+                    position = [22.8456, 91.4156]; // Near Chittagong
+                    popupContent = "<b>Van #V-7890</b><br>Status: Returning<br>Driver: Abdul Karim";
+                    document.getElementById('currentLocation').textContent = "Feni District";
+                    document.getElementById('distanceTraveled').textContent = "185 km";
+                    document.getElementById('estimatedArrival').textContent = "Completed";
+                    document.getElementById('remainingDistance').textContent = "35 km (to Depot)";
+                    break;
+                default:
+                    position = [24.2513, 89.9167]; // Default
+                    popupContent = "Unknown Vehicle";
+            }
             
-            completedPath.setLatLngs(newCompletedRoute);
-            remainingPath.setLatLngs(newRemainingRoute);
-            
-            // Update distance info
-            const distanceTraveled = parseInt(document.getElementById('distanceTraveled').textContent) + Math.random() * 0.2;
-            document.getElementById('distanceTraveled').textContent = distanceTraveled.toFixed(1) + ' km';
-            
-            const remainingDistance = parseInt(document.getElementById('remainingDistance').textContent) - Math.random() * 0.2;
-            document.getElementById('remainingDistance').textContent = remainingDistance.toFixed(1) + ' km';
-            
-            // Update last seen
-            document.querySelector('tr:last-child td:last-child').textContent = 'Just now';
-        };
+            // Add marker and adjust map view
+            let newMarker = L.marker(position).addTo(map)
+                .bindPopup(popupContent)
+                .openPopup();
+                
+            markers.push(newMarker);
+            map.setView(position, 9);
+        }
         
-        // Run movement simulation every 5 seconds
-        setInterval(simulateMovement, 5000);
+        // Initialize map
+        let map = L.map('map').setView([24.2513, 89.9167], 8);
+        let markers = [];
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Define the route
+        const routePoints = [
+            [23.7104, 90.4074], // Dhaka
+            [24.0083, 90.1111], // Manikganj
+            [24.2513, 89.9167], // Tangail (current location)
+            [24.7471, 90.4203], // Mymensingh
+            [22.3569, 91.7832]  // Chittagong
+        ];
+        
+        // Create polyline for the route
+        let route = L.polyline(routePoints, {color: 'blue', weight: 3}).addTo(map);
+        
+        // Add markers for start and end points
+        L.marker([23.7104, 90.4074]).addTo(map)
+            .bindPopup("<b>Origin</b><br>Dhaka Farm")
+            .openPopup();
+            
+        L.marker([22.3569, 91.7832]).addTo(map)
+            .bindPopup("<b>Destination</b><br>Chittagong Market");
+            
+        // Add current location marker
+        let currentMarker = L.marker([24.2513, 89.9167]).addTo(map)
+            .bindPopup("<b>Truck #T-1234</b><br>Status: On Route<br>Driver: Mohammad Rahman")
+            .openPopup();
+            
+        markers.push(currentMarker);
+        
+        // Set the progress bar
+        document.getElementById('statusProgress').style.width = '50%';
+        
+        // Function to edit vehicle
+        function editVehicle(vehicleID, vehicleType, batchID, location) {
+            document.getElementById('editVehicleID').value = vehicleID;
+            document.getElementById('editVehicleType').value = vehicleType;
+            document.getElementById('editBatchID').value = batchID;
+            document.getElementById('editLocation').value = location;
+            
+            // Show the edit modal
+            var editModal = new bootstrap.Modal(document.getElementById('editVehicleModal'));
+            editModal.show();
+        }
+        
+        // Function to confirm delete
+        function confirmDelete(vehicleID) {
+            document.getElementById('deleteVehicleID').value = vehicleID;
+            document.getElementById('deleteVehicleIDText').textContent = vehicleID;
+            
+            // Show the confirm delete modal
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteModal.show();
+        }
+        
+        // Search function for transportation table
+        document.getElementById('transportTableSearch').addEventListener('keyup', function() {
+            var input = this.value.toLowerCase();
+            var table = document.getElementById('transportationTable');
+            var rows = table.getElementsByTagName('tr');
+            
+            for (var i = 1; i < rows.length; i++) {
+                var showRow = false;
+                var cells = rows[i].getElementsByTagName('td');
+                
+                for (var j = 0; j < cells.length - 1; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(input) > -1) {
+                        showRow = true;
+                        break;
+                    }
+                }
+                
+                rows[i].style.display = showRow ? '' : 'none';
+            }
+        });
     </script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
 </body>
 
 </html>

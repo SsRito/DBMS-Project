@@ -1,52 +1,151 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "agriculturesupplychain";
+include "database.php";
 
-$conn = mysqli_connect($servername, $username, $password, $database);
+// We need to know the actual table structure
+$tableName = "grading_details"; 
 
-if (!$conn) {
-    die("Sorry, failed to connect with database" . mysqli_connect_error());
+// Check if form is submitted for various operations
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Handle CREATE operation
+    if (isset($_POST['create'])) {
+        // Properly escape user input to prevent SQL injection
+        $pastProblem = $conn->real_escape_string($_POST['pastProblem']);
+        $presentSituation = $conn->real_escape_string($_POST['presentSituation']);
+        $changes = $conn->real_escape_string($_POST['changes']);
+        
+        // Insert query without id references
+        $sql = "INSERT INTO $tableName (past_problem, present_situation, changes) 
+                VALUES ('$pastProblem', '$presentSituation', '$changes')";
+        
+        if ($conn->query($sql) === TRUE) {
+            $success = "Record created successfully";
+        } else {
+            $error = "Error: " . $conn->error;
+        }
+    }
+    
+    // Handle UPDATE operation - using content-based identification
+    if (isset($_POST['update']) && isset($_POST['record_identifier'])) {
+        // Use past_problem as identifier but from a hidden field containing the original value
+        $identifier = $conn->real_escape_string($_POST['record_identifier']);
+        
+        // Properly escape user input
+        $pastProblem = $conn->real_escape_string($_POST['pastProblem']);
+        $presentSituation = $conn->real_escape_string($_POST['presentSituation']);
+        $changes = $conn->real_escape_string($_POST['changes']);
+        
+        // Update using the original past_problem value to identify the record
+        $sql = "UPDATE $tableName SET 
+                past_problem='$pastProblem', 
+                present_situation='$presentSituation', 
+                changes='$changes' 
+                WHERE past_problem='$identifier'";
+        
+        if ($conn->query($sql) === TRUE) {
+            $success = "Record updated successfully";
+        } else {
+            $error = "Error: " . $conn->error;
+        }
+    }
+    
+    // Handle DELETE operation
+    if (isset($_POST['delete']) && isset($_POST['record_identifier'])) {
+        // Use past_problem as identifier
+        $identifier = $conn->real_escape_string($_POST['record_identifier']);
+        
+        // Delete using past_problem value to identify the record
+        $sql = "DELETE FROM $tableName WHERE past_problem='$identifier'";
+        
+        if ($conn->query($sql) === TRUE) {
+            $success = "Record deleted successfully";
+        } else {
+            $error = "Error: " . $conn->error;
+        }
+    }
+}
+
+// Get record to edit - using content-based identification
+$editRow = null;
+if (isset($_GET['edit'])) {
+    $identifier = $conn->real_escape_string($_GET['edit']);
+    $result = $conn->query("SELECT * FROM $tableName WHERE past_problem='$identifier'");
+    if ($result && $result->num_rows > 0) {
+        $editRow = $result->fetch_assoc();
+    }
+}
+
+// Fetch all records
+$sql = "SELECT * FROM $tableName";
+$result = $conn->query($sql);
+
+// Let's determine the column names from the first row if available
+$columnNames = [
+    'past_problem' => 'Past Problems',
+    'present_situation' => 'Present Situation',
+    'changes' => 'Changes/Pattern Recognition'
+];
+
+// To dynamically get column names (optional, but useful)
+if ($result && $result->num_rows > 0) {
+    $firstRow = $result->fetch_assoc();
+    $result->data_seek(0); // Reset pointer to beginning
+    
+    // Update column names based on what's actually in the database
+    $columnNames = [];
+    foreach ($firstRow as $key => $value) {
+        // Create a user-friendly display name from the column name
+        $displayName = ucwords(str_replace('_', ' ', $key));
+        $columnNames[$key] = $displayName;
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <style>
         .logout-btn {
-    background-color: #28a745
-    border-color #28a745;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
 
-.logout-btn:hover {
-    background-color: #dc3545 !important; /* Red on hover */
-    border-color: #dc3545 !important;
-}
+        .logout-btn:hover {
+            background-color: #dc3545 !important; /* Red on hover */
+            border-color: #dc3545 !important;
+        }
 
-.navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-width: 150px;
+            text-align: center;
+        }
 
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
+        }
 
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
-
-</style>
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
+            color: white;
+        }
+        
+        /* Add styles for CRUD buttons */
+        .btn-action {
+            margin-right: 5px;
+        }
+        
+        .crud-form {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
     <meta charset="utf-8">
     <title>FarmFresh - Organic Farm Website</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -108,7 +207,7 @@ if (!$conn) {
     <!-- Topbar End -->
 
 
-       <!-- Navbar Start -->
+    <!-- Navbar Start -->
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
         <a href="index.html" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
@@ -154,107 +253,217 @@ if (!$conn) {
 </div>
 <!-- Hero End -->
 
-<!-- Table Section Start -->
-    <div class="container my-5">
-        <h2 class="text-center mb-4">Grading, Packaging & Transportation Details</h2>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Past Problems</th>
-                        <th>Present Situation</th>
-                        <th>Changes/Pattern Recognition</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><b>Lack of Infrastructure:</b> Absence of proper grading centers or quality control labs.</td>
-                        <td>Increase in government and private sector-run grading centers, especially near major markets. Still inadequate in remote areas.</td>
-                        <td>Digital transformation is slowly penetrating agriculture, especially in export-oriented or industrialized farming sectors.</td>
-                    </tr>
-                    <tr>
-                        <td><b>Lack of Standardization:</b> No uniform grading system for many crops, especially in developing countries.</td>
-                        <td>Many countries now follow national or international grading standards (e.g., AGMARK in India, USDA grades in the U.S.). However, adoption still lags in rural areas.</td>
-                        <td>There's a growing emphasis on quality control and compliance, especially for global trade.
-
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Improper or Inadequate Packaging Materials:</b> Use of non-durable or non-food-grade materials.</td>
-                        <td>Better-designed packaging solutions (e.g., ventilated crates, shock-absorbing boxes) are more common. But affordability remains a barrier.</td>
-                        <td>Demand for eco-friendly, export-compliant, and protective packaging is rising.</td>
-                    </tr>
-                    <tr>
-                        <td><b>Poor Road Infrastructure:</b> Rural areas often lack proper roads.</td>
-                        <td>Improvements in rural infrastructure in our country through government schemes. Yet, last-mile connectivity is still poor in some areas.</td>
-                        <td>Infrastructure improvements are happening, but rural-urban gaps still exist.
-
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Overloading and Poor Handling:</b> Overstuffed transport vehicles and careless loading/unloading.</td>
-                        <td>Better training and use of purpose-built containers reduce damage, though poor handling persists in unregulated markets.</td>
-                        <td>Cold chain tech is expanding, but adoption is still low at the smallholder level due to high costs.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<!-- Database Debug Information - Remove in production -->
+<?php if(isset($error)): ?>
+<div class="container mt-3">
+    <div class="alert alert-info">
+        <h5>Table Structure Information</h5>
+        <p>If you're seeing column errors, please verify your table structure. You can run this SQL command in phpMyAdmin:</p>
+        <code>DESCRIBE <?php echo $tableName; ?>;</code>
+        <p class="mt-3">Then modify the column names in this code to match your actual table columns.</p>
     </div>
-<!-- Table Section End -->
+</div>
+<?php endif; ?>
 
+<!-- CRUD Form Section Start -->
+<div class="container my-5">
+    <?php if(isset($success)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?php echo $success; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?php echo $error; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
 
-    <!-- Testimonial Start -->
-    <!-- <div class="container-fluid bg-testimonial py-5" style="margin: 90px 0 135px 0;">
-        <div class="container py-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-7">
-                    <div class="owl-carousel testimonial-carousel p-5">
-                        <div class="testimonial-item text-center text-white">
-                            <img class="img-fluid mx-auto p-2 border border-5 border-secondary rounded-circle mb-4" src="img/testimonial-2.jpg" alt="">
-                            <p class="fs-5">Dolores sed duo clita justo dolor et stet lorem kasd dolore lorem ipsum. At lorem lorem magna ut et, nonumy labore diam erat. Erat dolor rebum sit ipsum.</p>
-                            <hr class="mx-auto w-25">
-                            <h4 class="text-white mb-0">Client Name</h4>
-                        </div>
-                        <div class="testimonial-item text-center text-white">
-                            <img class="img-fluid mx-auto p-2 border border-5 border-secondary rounded-circle mb-4" src="img/testimonial-2.jpg" alt="">
-                            <p class="fs-5">Dolores sed duo clita justo dolor et stet lorem kasd dolore lorem ipsum. At lorem lorem magna ut et, nonumy labore diam erat. Erat dolor rebum sit ipsum.</p>
-                            <hr class="mx-auto w-25">
-                            <h4 class="text-white mb-0">Client Name</h4>
-                        </div>
-                    </div>
+    <div class="crud-form">
+        <h3 class="mb-4"><?php echo $editRow ? 'Update Record' : 'Add New Record'; ?></h3>
+        <form method="post" action="">
+            <?php if($editRow): ?>
+                <input type="hidden" name="record_identifier" value="<?php echo htmlspecialchars($editRow['past_problem']); ?>">
+            <?php endif; ?>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="pastProblem" class="form-label">Past Problems</label>
+                    <textarea class="form-control" id="pastProblem" name="pastProblem" rows="3" required><?php 
+                        echo $editRow ? htmlspecialchars($editRow['past_problem'] ?? '') : ''; 
+                    ?></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label for="presentSituation" class="form-label">Present Situation</label>
+                    <textarea class="form-control" id="presentSituation" name="presentSituation" rows="3" required><?php 
+                        echo $editRow ? htmlspecialchars($editRow['present_situation'] ?? '') : ''; 
+                    ?></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label for="changes" class="form-label">Changes/Pattern Recognition</label>
+                    <textarea class="form-control" id="changes" name="changes" rows="3" required><?php 
+                        echo $editRow ? htmlspecialchars($editRow['changes'] ?? '') : ''; 
+                    ?></textarea>
                 </div>
             </div>
-        </div>
-    </div> -->
-    <!-- Testimonial End -->
-    
-
-    <!-- Footer Start -->
-    <div class="container-fluid bg-footer bg-primary text-white mt-5">
-        <!-- Footer content remains the same as in the original template -->
+            
+            <div class="text-center">
+                <?php if($editRow): ?>
+                    <button type="submit" name="update" class="btn btn-warning">Update Record</button>
+                    <a href="<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-secondary">Cancel</a>
+                <?php else: ?>
+                    <button type="submit" name="create" class="btn btn-success">Add Record</button>
+                <?php endif; ?>
+            </div>
+        </form>
     </div>
-    <div class="container-fluid bg-dark text-white py-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved.</p>
+</div>
+<!-- CRUD Form Section End -->
+
+<!-- Table Section Start -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Grading, Packaging & Transportation Details</h2>
+    <div class="text-end mb-3">
+        <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="fas fa-plus-circle"></i> Add New Record
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <tr>
+                    <?php foreach ($columnNames as $displayName): ?>
+                        <th><?php echo htmlspecialchars($displayName); ?></th>
+                    <?php endforeach; ?>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                if ($result && $result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        foreach ($columnNames as $column => $displayName) {
+                            echo "<td>" . htmlspecialchars($row[$column] ?? '') . "</td>";
+                        }
+                        echo "<td class='text-center'>
+                                <a href='" . $_SERVER['PHP_SELF'] . "?edit=" . urlencode($row["past_problem"]) . "' class='btn btn-warning btn-sm btn-action'>
+                                    <i class='fas fa-edit'></i> Edit
+                                </a>
+                                <button type='button' class='btn btn-danger btn-sm btn-action' data-bs-toggle='modal' data-bs-target='#deleteModal" . md5($row["past_problem"]) . "'>
+                                    <i class='fas fa-trash'></i> Delete
+                                </button>
+                                
+                                <!-- Delete Modal -->
+                                <div class='modal fade' id='deleteModal" . md5($row["past_problem"]) . "' tabindex='-1' aria-labelledby='deleteModalLabel' aria-hidden='true'>
+                                    <div class='modal-dialog'>
+                                        <div class='modal-content'>
+                                            <div class='modal-header'>
+                                                <h5 class='modal-title' id='deleteModalLabel'>Confirm Delete</h5>
+                                                <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                                            </div>
+                                            <div class='modal-body'>
+                                                Are you sure you want to delete this record?
+                                            </div>
+                                            <div class='modal-footer'>
+                                                <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cancel</button>
+                                                <form method='post' action=''>
+                                                    <input type='hidden' name='record_identifier' value='" . htmlspecialchars($row["past_problem"]) . "'>
+                                                    <button type='submit' name='delete' class='btn btn-danger'>Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                              </td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    // If no records found, display sample data or empty message
+                    echo "<tr>";
+                    echo "<td><b>Lack of Infrastructure:</b> Absence of proper grading centers or quality control labs.</td>";
+                    echo "<td>Increase in government and private sector-run grading centers, especially near major markets. Still inadequate in remote areas.</td>";
+                    echo "<td>Digital transformation is slowly penetrating agriculture, especially in export-oriented or industrialized farming sectors.</td>";
+                    echo "<td class='text-center'>
+                            <button type='button' class='btn btn-warning btn-sm btn-action' disabled>
+                                <i class='fas fa-edit'></i> Edit
+                            </button>
+                            <button type='button' class='btn btn-danger btn-sm btn-action' disabled>
+                                <i class='fas fa-trash'></i> Delete
+                            </button>
+                          </td>";
+                    echo "</tr>";
+                    // Add more sample rows as needed
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Table Section End -->
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Add New Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="modalPastProblem" class="form-label">Past Problems</label>
+                            <textarea class="form-control" id="modalPastProblem" name="pastProblem" rows="3" required></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="modalPresentSituation" class="form-label">Present Situation</label>
+                            <textarea class="form-control" id="modalPresentSituation" name="presentSituation" rows="3" required></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="modalChanges" class="form-label">Changes/Pattern Recognition</label>
+                            <textarea class="form-control" id="modalChanges" name="changes" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" name="create" class="btn btn-success">Add Record</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    <!-- Footer End -->
+</div>
+
+<!-- Footer Start -->
+<div class="container-fluid bg-footer bg-primary text-white mt-5">
+    <!-- Footer content remains the same as in the original template -->
+</div>
+<div class="container-fluid bg-dark text-white py-4">
+    <div class="container text-center">
+        <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved.</p>
+    </div>
+</div>
+<!-- Footer End -->
 
 
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
+<!-- Back to Top -->
+<a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
 
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/counterup/counterup.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+<!-- JavaScript Libraries -->
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="lib/easing/easing.min.js"></script>
+<script src="lib/waypoints/waypoints.min.js"></script>
+<script src="lib/counterup/counterup.min.js"></script>
+<script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+<!-- Template Javascript -->
+<script src="js/main.js"></script>
 </body>
 
 </html>
