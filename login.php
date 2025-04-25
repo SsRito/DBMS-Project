@@ -232,7 +232,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         .login-image {
         width: 50%;
-        background: url(C:\xampp\htdocs\DBMS-Project\img\Home.jpg) center center no-repeat;
+        background: url(../img/Home.jpg) center center no-repeat;
         background-size: cover;
         }
     </style>
