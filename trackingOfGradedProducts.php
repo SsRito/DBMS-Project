@@ -225,6 +225,65 @@ $result = mysqli_query($conn, $sql);
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
+
+        /* Table styling with transitions */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.product-table th, .product-table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.product-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #495057;
+    position: sticky;
+    top: 0;
+}
+
+.product-table tr {
+    transition: background-color 0.3s ease;
+}
+
+.product-table tr:nth-child(even) {
+    background-color: #f2f7ff;
+}
+
+.product-table tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.product-table tr:hover {
+    background-color: #e8f4f8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.product-table tr:hover td {
+    color: #28a745;
+}
+
+.product-table td .action-btn {
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    margin: 2px;
+    transform: scale(1);
+}
+
+.product-table td .action-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
     </style>
     
     <meta charset="utf-8">
@@ -314,7 +373,7 @@ $result = mysqli_query($conn, $sql);
                     <div class="dropdown-menu text-center">
                         <a href="service.php" class="dropdown-item">Service</a>
                         <a href="contact.php" class="dropdown-item">Contact Us</a>
-                        <a href="about.php" class="dropdown-item">About</a>
+                        <a href="about.html" class="dropdown-item">About</a>
                     </div>
                 </div>
             </div>
@@ -327,7 +386,7 @@ $result = mysqli_query($conn, $sql);
         <div class="container h-100 d-flex align-items-center justify-content-center">
             <div class="row">
                 <div class="col-12 text-center">
-                    <h1 class="display-1 text-white mb-0">Graded Product Tracking</h1>
+                    <h1 class="display-1 text-white mb-0"></h1>
                 </div>
             </div>
         </div>
