@@ -28,7 +28,7 @@ if (isset($_POST['add_entry'])) {
     $size = $_POST['criteria_size'];
     $shape = $_POST['criteria_shape'];
     $colour = $_POST['criteria_colour'];
-    $infestation = $_POST['criteria_infestation'];
+    $infestation = isset($_POST['criteria_infestation']) ? 1 : 0;
     $cropTypeID = $_POST['cropTypeID'];
     
     $add_sql = "INSERT INTO farmer_crop_type_grade (standardGradeID, quantity, cropGrade, criteria_size,
@@ -50,7 +50,7 @@ if (isset($_POST['update'])) {
     $size = $_POST['edit_criteria_size'];
     $shape = $_POST['edit_criteria_shape']; 
     $colour = $_POST['edit_criteria_colour'];
-    $infestation = $_POST['edit_criteria_infestation']; 
+    $infestation = isset($_POST['edit_criteria_infestation']) ? 1 : 0; 
     $cropTypeID = $_POST['edit_cropTypeID']; 
     
     $update_sql = "UPDATE farmer_crop_type_grade SET 
@@ -69,13 +69,6 @@ if (isset($_POST['update'])) {
         $error_message = "Error updating record: " . mysqli_error($conn);
     }
 }
-//Get cropTypeID options for dropdown
-// $cropType_sql = "SELECT cropTYpeID FROM farmer_crop_type";
-// $cropType_result = mysqli_query($conn, $cropType_sql);
-// $cropType_options = [];
-// while ($row = mysqli_fetch_assoc($cropType_result)) {
-//     $cropType_options[] = $row['cropTypeID'];
-// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -154,49 +147,62 @@ if (isset($_POST['update'])) {
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
-        
         .modal-content {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: white;
-            padding: 20px;
+            padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            width: 500px;
-            max-width: 90%;
+            width: 350px; /* Slightly reduced width */
+            max-height: 80vh; /* Limit maximum height */
+            overflow-y: auto;
         }
-        
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 8px; 
         }
-        
+
         .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            display: inline-block;
+    width: 35%;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    vertical-align: middle;
         }
         
         .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            width: 60%;
+    display: inline-block;
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    vertical-align: middle;
         }
-        
+        .form-group input[type="checkbox"] {
+            width: auto;
+            height: auto;
+            margin-top: 5px;
+        }
         .btn-container {
-            margin-top: 20px;
+            margin-top: 12px; /* Reduced from 20px */
             text-align: right;
         }
-        
-        #mapDisplay {
-            height: 400px;
-            width: 100%;
-            margin-top: 20px;
-            display: none;
+
+        .btn-container .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
-        
+        .modal-content h4 {
+            font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    text-align: center;
+    color: #28a745;
+}
+          
         .alert {
             padding: 15px;
             margin-bottom: 20px;
@@ -386,6 +392,22 @@ if (isset($_POST['update'])) {
     </div>
 </div>
 <!-- Hero End -->
+ <!-- Add this right after the Hero section before the Grading Table section -->
+<div class="container mt-3">
+    <?php if(isset($success_message)): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?php echo $success_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    
+    <?php if(isset($error_message)): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo $error_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+</div>
 
 
     <!-- Grading Table Section Start -->
@@ -405,7 +427,7 @@ if (isset($_POST['update'])) {
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="product-table">
+                <table class="product-table" id="gradingTable">
                     <thead>
                         <tr>
                             <th>Standard Grade ID</th>
@@ -444,17 +466,18 @@ if (isset($_POST['update'])) {
 
                             <td><?php echo $row['cropTypeID']; ?></td>
                             <td>
-                                <button class="btn btn-primary action-btn edit-btn" 
-                                        data-id="<?php echo $row['standardGradeID']; ?>" 
-                                        data-quantity="<?php echo $row['quantity']; ?>" 
-                                        data-cropGrade="<?php echo $row['cropGrade']; ?>" 
-                                        data-size="<?php echo $row['criteria_size']; ?>" 
-                                        data-shape="<?php echo $row['criteria_shape']; ?>"
-                                        data-colour="<?php echo $row['criteria_colour']; ?>"
-                                        data-infestation="<?php echo $row['criteria_infestation']; ?>"
-                                        data-cropTypeID="<?php echo $row['cropTypeID']; ?>">
-                                    <i class="fas fa-edit"></i>
-                                </button>
+                            <button class="btn btn-primary action-btn edit-btn" 
+                                data-id="<?php echo $row['standardGradeID']; ?>" 
+                                data-quantity="<?php echo $row['quantity']; ?>" 
+                                data-cropgrade="<?php echo $row['cropGrade']; ?>" 
+                                data-size="<?php echo $row['criteria_size']; ?>" 
+                                data-shape="<?php echo $row['criteria_shape']; ?>"
+                                data-colour="<?php echo $row['criteria_colour']; ?>"
+                                data-infestation="<?php echo $row['criteria_infestation']; ?>"
+                                data-croptypeid="<?php echo $row['cropTypeID']; ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                
                                 <form method="post" style="display:inline;">
                                     <input type="hidden" name="delete" value="<?php echo $row['standardGradeID']; ?>">
                                     <button type="submit" class="btn btn-danger action-btn delete-btn" 
@@ -469,7 +492,6 @@ if (isset($_POST['update'])) {
 
                 <?php   }
                 }
-                $conn->close();
                 ?>
                     </tbody>
             </table>
@@ -539,7 +561,7 @@ if (isset($_POST['update'])) {
                 </div>
                 <div class="btn-container">
                     <button type="button" id="cancelAddBtn" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" name="add_track" class="btn btn-primary">Add Product</button>
+                    <button type="submit" name="add_entry" class="btn btn-primary">Add Entry</button>
                 </div>
             </form>
         </div>
@@ -596,7 +618,7 @@ if (isset($_POST['update'])) {
 
                 <div class="btn-container">
                     <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" name="update_track" class="btn btn-primary">Update Product</button>
+                    <button type="submit" name="update" class="btn btn-primary">Update</button>
                 </div>
             </form>
         </div>
@@ -642,38 +664,7 @@ if (isset($_POST['update'])) {
     </script> 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-       // Add inside your form submission JS (AFTER row is added)
-        document.getElementById('addGradingForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const form = e.target;
-            const values = Array.from(form.elements).reduce((obj, el) => {
-                if (el.name) obj[el.name] = el.value;
-                return obj;
-            }, {});
-    
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${values.standardGradeId}</td>
-                <td>${values.cropTypeId}</td>
-                <td>${values.quantity}</td>
-                <td>${values.grade}</td>
-                <td>${values.size}</td>
-                <td>${values.shape}</td>
-                <td>${values.colour}</td>
-                <td>${values.infestation}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning btn-edit">Edit</button>
-                    <button class="btn btn-sm btn-danger btn-delete">Delete</button>
-                </td>
-            `;
-            document.querySelector('#gradingTable tbody').appendChild(newRow);
-            attachRowActions(newRow);
-            updateGradeChart(values.grade); // <- UPDATE CHART HERE
-            form.reset();
-            bootstrap.Modal.getInstance(document.getElementById('addGradingModal')).hide();
-        });
-
-
+      //
     </script>
     
 
