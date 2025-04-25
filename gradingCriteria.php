@@ -96,6 +96,9 @@ if (isset($_POST['add'])) {
         }
     }
 }
+$sql = "SELECT standardGradeID, quantity, cropGrade, criteria_size, criteria_shape, criteria_colour FROM farmer_crop_type_grade";
+
+$result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -227,7 +230,7 @@ if (isset($_POST['add'])) {
                 <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
                 <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
                 <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
                 <div class="nav-item dropdown px-3">
@@ -281,7 +284,8 @@ if (isset($_POST['add'])) {
             <?php echo $error_message; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <?php endif; ?>
+        <?php endif;
+?>
 
         <!-- Search Bar -->
         <div class="row mb-4">
@@ -295,8 +299,8 @@ if (isset($_POST['add'])) {
             <table class="table table-bordered table-hover" id="gradingTable">
                 <thead class="table-primary">
                     <tr>
-                        <th>Grade ID</th>
-                        <th>Quantity</th>
+                        <th>Standard Grade ID</th>
+                        <th>Quantity(Kg)</th>
                         <th>Grade</th>
                         <th>Size</th>
                         <th>Shape</th>
