@@ -9,6 +9,82 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
 }
+
+// Handle Delete Operation
+if (isset($_POST['delete_track'])) {
+    $trackID = $_POST['delete_track'];
+    $delete_sql = "DELETE FROM graded_p_track WHERE trackID = '$trackID'";
+    
+    if (mysqli_query($conn, $delete_sql)) {
+        $success_message = "Record deleted successfully";
+    } else {
+        $error_message = "Error deleting record: " . mysqli_error($conn);
+    }
+}
+
+// Handle Add Operation
+if (isset($_POST['add_track'])) {
+    $trackID = $_POST['trackID'];
+    $standardGradeID = $_POST['standardGradeID'];
+    $warehouseID = $_POST['warehouseID'];
+    $cropGrade = $_POST['cropGrade'];
+    $location = $_POST['location'];
+    
+    $add_sql = "INSERT INTO graded_p_track (trackID, standardGradeID, warehouseID, cropGrade, location) 
+                VALUES ('$trackID', '$standardGradeID', '$warehouseID', '$cropGrade', '$location')";
+    
+    if (mysqli_query($conn, $add_sql)) {
+        $success_message = "New record added successfully";
+    } else {
+        $error_message = "Error adding record: " . mysqli_error($conn);
+    }
+}
+
+// Handle Update Operation
+if (isset($_POST['update_track'])) {
+    $trackID = $_POST['edit_trackID'];
+    $standardGradeID = $_POST['edit_standardGradeID'];
+    $warehouseID = $_POST['edit_warehouseID'];
+    $cropGrade = $_POST['edit_cropGrade'];
+    $location = $_POST['edit_location'];
+    
+    $update_sql = "UPDATE graded_p_track SET 
+                  standardGradeID = '$standardGradeID',
+                  warehouseID = '$warehouseID', 
+                  cropGrade = '$cropGrade', 
+                  location = '$location' 
+                  WHERE trackID = '$trackID'";
+    
+    if (mysqli_query($conn, $update_sql)) {
+        $success_message = "Record updated successfully";
+    } else {
+        $error_message = "Error updating record: " . mysqli_error($conn);
+    }
+}
+
+// Get standard grade options for dropdown
+$grade_sql = "SELECT standardGradeID FROM farmer_crop_type_grade";
+$grade_result = mysqli_query($conn, $grade_sql);
+$grade_options = [];
+while ($row = mysqli_fetch_assoc($grade_result)) {
+    $grade_options[] = $row['standardGradeID'];
+}
+
+// Get warehouse options for dropdown
+$warehouse_sql = "SELECT warehouseID, location FROM warehouse";
+$warehouse_result = mysqli_query($conn, $warehouse_sql);
+$warehouse_options = [];
+$warehouse_locations = [];
+while ($row = mysqli_fetch_assoc($warehouse_result)) {
+    $warehouse_options[$row['warehouseID']] = $row['warehouseID'];
+    $warehouse_locations[$row['warehouseID']] = $row['location'];
+}
+
+// Get all tracked products
+$sql = "SELECT gpt.*, w.location as warehouse_location 
+        FROM graded_p_track gpt
+        JOIN warehouse w ON gpt.warehouseID = w.warehouseID";
+$result = mysqli_query($conn, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -50,6 +126,7 @@ if (!$conn) {
         .product-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         
         .product-table th, .product-table td {
@@ -60,6 +137,15 @@ if (!$conn) {
         
         .product-table th {
             background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .product-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .product-table tr:hover {
+            background-color: #f1f1f1;
         }
         
         .action-btn {
@@ -113,10 +199,36 @@ if (!$conn) {
             margin-top: 20px;
             text-align: right;
         }
+        
+        #mapDisplay {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
     </style>
     
     <meta charset="utf-8">
-    <title>Banglar Krishi - Organic Farm Website</title>
+    <title>Banglar Krishi - Graded Product Tracking</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -140,6 +252,9 @@ if (!$conn) {
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
@@ -171,7 +286,6 @@ if (!$conn) {
                     </a>
                 </div>
             </div>                             
-            
         </div>
     </div>
     <!-- Topbar End -->
@@ -192,7 +306,7 @@ if (!$conn) {
                 <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
                 <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="trackingOfGradedProducts.php" class="nav-item nav-link active px-3">Graded Product Tracking</a>
                 <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
                 <div class="nav-item dropdown px-3">
@@ -208,241 +322,218 @@ if (!$conn) {
     </nav>
     <!-- Navbar End -->
 
-
-<!-- Hero Start -->
-<div class="container-fluid bg-primary py-5 bg-hero-gradedTracking mb-5">
-    <div class="container h-100 d-flex align-items-center justify-content-center">
-        <div class="row">
-            <div class="col-12 text-center">
-                <h1 class="display-1 text-white mb-0"></h1>
+    <!-- Hero Start -->
+    <div class="container-fluid bg-primary py-5 bg-hero-gradedTracking mb-5">
+        <div class="container h-100 d-flex align-items-center justify-content-center">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-1 text-white mb-0">Graded Product Tracking</h1>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Hero End -->
+    <!-- Hero End -->
 
-<!-- For the first tracking section -->
-<div class="container-fluid py-5 bg-light">
-    <div class="container">
-        <div class="mx-auto text-center mb-4" style="max-width: 600px;">
-            <h2 class="text-primary">Track Graded Products</h2>
-            <p>Enter your Track ID to check grading status and location.</p>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <div class="tracking-box">
-                    <form id="trackingForm">
-                        <div class="input-group mb-3">
-                            <input type="text" id="trackId" class="form-control" placeholder="Enter Product ID" required>
-                            <button type="submit" class="btn btn-primary">Track</button>
+     <!-- For the tracking section for customers -->
+     <div class="container-fluid py-5 bg-light">
+        <div class="container">
+            <div class="mx-auto text-center mb-4" style="max-width: 600px;">
+                <h2 class="text-primary">Track Graded Products</h2>
+                <p>Enter your Track ID to check grading status and location.</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="tracking-box">
+                        <form id="trackingForm">
+                            <div class="input-group mb-3">
+                                <input type="text" id="trackId" class="form-control" placeholder="Enter Track ID" required>
+                                <button type="submit" class="btn btn-primary">Track</button>
+                            </div>
+                        </form>
+                        <div id="trackingResult" class="bg-white p-4 shadow-sm rounded d-none">
+                            <h5 class="text-success">Tracking Details</h5>
+                            <p><strong>Status:</strong> <span id="statusText">Fetching...</span></p>
+                            <p><strong>Location:</strong> <span id="locationText">--</span></p>
+                            <p><strong>Grade:</strong> <span id="gradeText">--</span></p>
                         </div>
-                    </form>
-                    <div id="trackingResult" class="bg-white p-4 shadow-sm rounded d-none">
-                        <h5 class="text-success">Tracking Details</h5>
-                        <p><strong>Status:</strong> <span id="statusText">Fetching...</span></p>
-                        <p><strong>Last Updated:</strong> <span id="updateText">--</span></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <!-- Tracking Product Management Section -->
+    <div class="container-fluid py-5">
+        <div class="container">
+            <div class="mx-auto text-center mb-5" style="max-width: 800px;">
+                <h2 class="text-primary">Graded Product Tracking</h2>
+                <p>Manage and track graded products throughout the supply chain</p>
+            </div>
+            
+            <?php if(isset($success_message)): ?>
+                <div class="alert alert-success"><?php echo $success_message; ?></div>
+            <?php endif; ?>
+            
+            <?php if(isset($error_message)): ?>
+                <div class="alert alert-danger"><?php echo $error_message; ?></div>
+            <?php endif; ?>
+            
+            <div class="table-responsive">
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Track ID</th>
+                            <th>Standard Grade ID</th>
+                            <th>Warehouse ID</th>
+                            <th>Crop Grade</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+                        <tr>
+                            <td><?php echo $row['trackID']; ?></td>
+                            <td><?php echo $row['standardGradeID']; ?></td>
+                            <td><?php echo $row['warehouseID']; ?></td>
+                            <td><?php echo $row['cropGrade']; ?></td>
+                            <td><?php echo $row['location']; ?></td>
+                            <td>
+                                <button class="btn btn-primary action-btn edit-btn" 
+                                        data-id="<?php echo $row['trackID']; ?>" 
+                                        data-standardgradeid="<?php echo $row['standardGradeID']; ?>" 
+                                        data-warehouseid="<?php echo $row['warehouseID']; ?>" 
+                                        data-cropgrade="<?php echo $row['cropGrade']; ?>" 
+                                        data-location="<?php echo $row['location']; ?>">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="delete_track" value="<?php echo $row['trackID']; ?>">
+                                    <button type="submit" class="btn btn-danger action-btn delete-btn" 
+                                            onclick="return confirm('Are you sure you want to delete this record?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                <button class="btn btn-info action-btn locate-btn" 
+                                        data-id="<?php echo $row['trackID']; ?>" 
+                                        data-location="<?php echo $row['location']; ?>">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
 
-<!-- For the warehouse location section -->
-<div class="container my-5">
-    <div class="text-center mb-4">
-        <h2 class="text-primary">Live Warehouse Location & Info</h2>
-        <p class="text-muted">Track warehouse locations and get updated operational details.</p>
+            <div class="mb-3 text-center">
+                <button id="addProductBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Product
+                </button>
+            </div>
+
+            
+            <!-- Map Display -->
+            <div id="mapDisplay" class="mt-4"></div>
+        </div>
     </div>
-    <div class="row g-4 align-items-stretch">
-        <!-- Map -->
-        <div class="col-lg-6">
-            <div class="tracking-box p-0 overflow-hidden">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3650.1127498548625!2d90.40439467579405!3d23.81202998643144!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7965cb9fbd3%3A0x4ea14f91a96cb3e7!2sFarmers%20Market%20Dhaka!5e0!3m2!1sen!2sbd!4v1684212173468!5m2!1sen!2sbd"
-                        width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-            </div>
-        </div>
+    
 
-        <!-- Details -->
-        <div class="col-lg-6">
-            <div class="warehouse-box">
-                <h5>📍 Dhaka Central Warehouse</h5>
-                <p><strong>Status:</strong> Active</p>
-                <p><strong>Storage Capacity:</strong> 80% full</p>
-                <p><strong>Supervisor:</strong> Mr. Karim</p>
-                <p><strong>Phone:</strong> +880 1234 567 890</p>
-                <hr>
-                <h5>📍 Chattogram Distribution Hub</h5>
-                <p><strong>Status:</strong> Under Maintenance</p>
-                <p><strong>Storage Capacity:</strong> 50% full</p>
-                <p><strong>Supervisor:</strong> Ms. Jahanara</p>
-                <p><strong>Phone:</strong> +880 1987 654 321</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- NEW SECTION: Graded Products Table -->
-<div class="container-fluid py-5">
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12 text-end">
-                <button id="addProductBtn" class="btn btn-success"><i class="fas fa-plus"></i> Add New Product</button>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-12">
-                <div class="bg-white p-4 shadow-sm rounded">
-                    <div class="table-responsive">
-                        <table class="product-table">
-                            <thead>
-                                <tr>
-                                    <th>Track ID</th>
-                                    <th>Batch ID</th>
-                                    <th>Crop Grade</th>
-                                    <th>Quantity</th>
-                                    <th>Warehouse ID</th>
-                                    <th>Warehouse Location</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productTableBody">
-                                <!-- Sample data, to be populated dynamically -->
-                                <tr>
-                                    <td>TRK-001</td>
-                                    <td>BCH-5642</td>
-                                    <td>A+</td>
-                                    <td>500 kg</td>
-                                    <td>WH-001</td>
-                                    <td>Dhaka Central Warehouse</td>
-                                    <td>
-                                        <button class="btn btn-primary action-btn edit-btn" data-id="TRK-001"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-danger action-btn delete-btn" data-id="TRK-001"><i class="fas fa-trash"></i></button>
-                                        <button class="btn btn-info action-btn locate-btn" data-id="TRK-001" data-lat="23.8120" data-lng="90.4044"><i class="fas fa-map-marker-alt"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>TRK-002</td>
-                                    <td>BCH-5643</td>
-                                    <td>B</td>
-                                    <td>350 kg</td>
-                                    <td>WH-002</td>
-                                    <td>Chattogram Distribution Hub</td>
-                                    <td>
-                                        <button class="btn btn-primary action-btn edit-btn" data-id="TRK-002"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-danger action-btn delete-btn" data-id="TRK-002"><i class="fas fa-trash"></i></button>
-                                        <button class="btn btn-info action-btn locate-btn" data-id="TRK-002" data-lat="22.3569" data-lng="91.7832"><i class="fas fa-map-marker-alt"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal-overlay">
+        <div class="modal-content">
+            <h4>Add New Graded Product</h4>
+            <form id="addProductForm" method="post" action="">
+                <div class="form-group">
+                    <label for="trackID">Track ID:</label>
+                    <input type="text" id="trackID" name="trackID" required>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="standardGradeID">Standard Grade ID:</label>
+                    <select id="standardGradeID" name="standardGradeID" required>
+                        <option value="">Select Standard Grade</option>
+                        <?php foreach($grade_options as $grade): ?>
+                            <option value="<?php echo $grade; ?>"><?php echo $grade; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="warehouseID">Warehouse ID:</label>
+                    <select id="warehouseID" name="warehouseID" required>
+                        <option value="">Select Warehouse</option>
+                        <?php foreach($warehouse_options as $id => $name): ?>
+                            <option value="<?php echo $id; ?>"><?php echo $name; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cropGrade">Crop Grade:</label>
+                    <select id="cropGrade" name="cropGrade" required>
+                        <option value="">Select Grade</option>
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+                <div class="btn-container">
+                    <button type="button" id="cancelAddBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" name="add_track" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Map for showing locations -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div id="mapDisplay" class="rounded border" style="height: 400px; width: 100%; display: none;"></div>
-            </div>
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal-overlay">
+        <div class="modal-content">
+            <h4>Edit Graded Product</h4>
+            <form id="editProductForm" method="post" action="">
+                <input type="hidden" id="edit_trackID" name="edit_trackID">
+                <div class="form-group">
+                    <label for="edit_standardGradeID">Standard Grade ID:</label>
+                    <select id="edit_standardGradeID" name="edit_standardGradeID" required>
+                        <option value="">Select Standard Grade</option>
+                        <?php foreach($grade_options as $grade): ?>
+                            <option value="<?php echo $grade; ?>"><?php echo $grade; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_warehouseID">Warehouse ID:</label>
+                    <select id="edit_warehouseID" name="edit_warehouseID" required>
+                        <option value="">Select Warehouse</option>
+                        <?php foreach($warehouse_options as $id => $name): ?>
+                            <option value="<?php echo $id; ?>"><?php echo $name; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_cropGrade">Crop Grade:</label>
+                    <select id="edit_cropGrade" name="edit_cropGrade" required>
+                        <option value="">Select Grade</option>
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_location">Location:</label>
+                    <input type="text" id="edit_location" name="edit_location" required>
+                </div>
+                <div class="btn-container">
+                    <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" name="update_track" class="btn btn-primary">Update Product</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Add Product Modal -->
-<div id="addProductModal" class="modal-overlay">
-    <div class="modal-content">
-        <h4 class="mb-4">Add New Product</h4>
-        <form id="addProductForm">
-            <div class="form-group">
-                <label for="trackId">Track ID</label>
-                <input type="text" id="trackId" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="batchId">Batch ID</label>
-                <input type="text" id="batchId" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="cropGrade">Crop Grade</label>
-                <select id="cropGrade" class="form-control">
-                    <option value="A+">A+</option>
-                    <option value="A">A</option>
-                    <option value="B+">B+</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="quantity">Quantity</label>
-                <input type="text" id="quantity" class="form-control" placeholder="e.g. 500 kg" required>
-            </div>
-            <div class="form-group">
-                <label for="warehouseId">Warehouse ID</label>
-                <input type="text" id="warehouseId" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="warehouseLocation">Warehouse Location</label>
-                <select id="warehouseLocation" class="form-control">
-                    <option value="Dhaka Central Warehouse">Dhaka Central Warehouse</option>
-                    <option value="Chattogram Distribution Hub">Chattogram Distribution Hub</option>
-                </select>
-            </div>
-            <div class="btn-container">
-                <button type="button" id="cancelAddBtn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Product Modal -->
-<div id="editProductModal" class="modal-overlay">
-    <div class="modal-content">
-        <h4 class="mb-4">Edit Product</h4>
-        <form id="editProductForm">
-            <input type="hidden" id="editTrackId">
-            <div class="form-group">
-                <label for="editBatchId">Batch ID</label>
-                <input type="text" id="editBatchId" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="editCropGrade">Crop Grade</label>
-                <select id="editCropGrade" class="form-control">
-                    <option value="A+">A+</option>
-                    <option value="A">A</option>
-                    <option value="B+">B+</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="editQuantity">Quantity</label>
-                <input type="text" id="editQuantity" class="form-control" placeholder="e.g. 500 kg" required>
-            </div>
-            <div class="form-group">
-                <label for="editWarehouseId">Warehouse ID</label>
-                <input type="text" id="editWarehouseId" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="editWarehouseLocation">Warehouse Location</label>
-                <select id="editWarehouseLocation" class="form-control">
-                    <option value="Dhaka Central Warehouse">Dhaka Central Warehouse</option>
-                    <option value="Chattogram Distribution Hub">Chattogram Distribution Hub</option>
-                </select>
-            </div>
-            <div class="btn-container">
-                <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-    <!-- Footer Start -->
-    <div class="container-fluid bg-footer bg-primary text-white mt-5">
+     <!-- Footer Start -->
+     <div class="container-fluid bg-footer bg-primary text-white mt-5">
         <!-- Footer content remains the same as in the original template -->
     </div>
     <div class="container-fluid bg-dark text-white py-4">
@@ -452,10 +543,8 @@ if (!$conn) {
     </div>
     <!-- Footer End -->
 
-
     <!-- Back to Top -->
     <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
-
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -467,228 +556,209 @@ if (!$conn) {
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    
     <script>
-        document.getElementById("trackingForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const trackId = document.getElementById("trackId").value.trim();
-            const resultBox = document.getElementById("trackingResult");
-            const statusText = document.getElementById("statusText");
-            const updateText = document.getElementById("updateText");
-    
-            // Simulate a lookup (replace this with real API call)
-            if (trackId === "AGRI123") {
-                statusText.textContent = "Graded and Ready for Packaging";
-                updateText.textContent = "2025-04-18 10:15 AM";
-            } else if (trackId === "AGRI456") {
-                statusText.textContent = "In Transit to Distribution Center";
-                updateText.textContent = "2025-04-17 03:42 PM";
-            } else {
-                statusText.textContent = "Product ID not found. Please check again.";
-                updateText.textContent = "--";
-            }
-    
-            resultBox.classList.remove("d-none");
-        });
-    </script>
-
-<script>
-    // Map initialization
-    let map;
-    let markers = [];
-    let warehouseLocations = {
-        "Dhaka Central Warehouse": { lat: 23.8120, lng: 90.4044 },
-        "Chattogram Distribution Hub": { lat: 22.3569, lng: 91.7832 }
-    };
-
-    function initMap() {
-        map = new google.maps.Map(document.getElementById("mapDisplay"), {
-            center: { lat: 23.8103, lng: 90.4125 },
-            zoom: 7
-        });
-    }
-
-    // Clear existing markers from map
-    function clearMarkers() {
-        markers.forEach(marker => marker.setMap(null));
-        markers = [];
-    }
-
-    // Initialize the map when the page loads
-    document.addEventListener("DOMContentLoaded", function() {
-        // Modal functionality
-        const addProductModal = document.getElementById("addProductModal");
-        const editProductModal = document.getElementById("editProductModal");
-        const addProductBtn = document.getElementById("addProductBtn");
-        const cancelAddBtn = document.getElementById("cancelAddBtn");
-        const cancelEditBtn = document.getElementById("cancelEditBtn");
+        // Map initialization
+        let map;
+        let markers = [];
         
-        // Open Add Product Modal
-        addProductBtn.addEventListener("click", function() {
-            addProductModal.style.display = "block";
-        });
-        
-        // Close Add Product Modal
-        cancelAddBtn.addEventListener("click", function() {
-            addProductModal.style.display = "none";
-        });
-        
-        // Close Edit Product Modal
-        cancelEditBtn.addEventListener("click", function() {
-            editProductModal.style.display = "none";
-        });
-        
-        // Close modals when clicking outside
-        window.addEventListener("click", function(event) {
-            if (event.target === addProductModal) {
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("mapDisplay"), {
+                center: { lat: 23.8103, lng: 90.4125 },
+                zoom: 7
+            });
+        }
+
+        // Clear existing markers from map
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        // Initialize the map when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            // Modal functionality
+            const addProductModal = document.getElementById("addProductModal");
+            const editProductModal = document.getElementById("editProductModal");
+            const addProductBtn = document.getElementById("addProductBtn");
+            const cancelAddBtn = document.getElementById("cancelAddBtn");
+            const cancelEditBtn = document.getElementById("cancelEditBtn");
+            
+            // Open Add Product Modal
+            addProductBtn.addEventListener("click", function() {
+                addProductModal.style.display = "block";
+            });
+            
+            // Close Add Product Modal
+            cancelAddBtn.addEventListener("click", function() {
                 addProductModal.style.display = "none";
-            }
-            if (event.target === editProductModal) {
+            });
+            
+            // Close Edit Product Modal
+            cancelEditBtn.addEventListener("click", function() {
                 editProductModal.style.display = "none";
-            }
-        });
-        
-        // Add Product Form Submission
-        document.getElementById("addProductForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+            });
             
-            const trackId = document.getElementById("trackId").value;
-            const batchId = document.getElementById("batchId").value;
-            const cropGrade = document.getElementById("cropGrade").value;
-            const quantity = document.getElementById("quantity").value;
-            const warehouseId = document.getElementById("warehouseId").value;
-            const warehouseLocation = document.getElementById("warehouseLocation").value;
+            // Close modals when clicking outside
+            window.addEventListener("click", function(event) {
+                if (event.target === addProductModal) {
+                    addProductModal.style.display = "none";
+                }
+                if (event.target === editProductModal) {
+                    editProductModal.style.display = "none";
+                }
+            });
             
-            // Create table row
-            const tableBody = document.getElementById("productTableBody");
-            const newRow = tableBody.insertRow();
-            
-            newRow.innerHTML = `
-                <td>${trackId}</td>
-                <td>${batchId}</td>
-                <td>${cropGrade}</td>
-                <td>${quantity}</td>
-                <td>${warehouseId}</td>
-                <td>${warehouseLocation}</td>
-                <td>
-                    <button class="btn btn-primary action-btn edit-btn" data-id="${trackId}"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-danger action-btn delete-btn" data-id="${trackId}"><i class="fas fa-trash"></i></button>
-                    <button class="btn btn-info action-btn locate-btn" data-id="${trackId}" 
-                            data-lat="${warehouseLocations[warehouseLocation].lat}" 
-                            data-lng="${warehouseLocations[warehouseLocation].lng}">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </button>
-                </td>
-            `;
-            
-            // Reset form and close modal
-            document.getElementById("addProductForm").reset();
-            addProductModal.style.display = "none";
-            
-            // Reinitialize event listeners for the new buttons
-            initActionButtons();
-        });
-        
-        // Edit Product Form Submission
-        document.getElementById("editProductForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            const trackId = document.getElementById("editTrackId").value;
-            const batchId = document.getElementById("editBatchId").value;
-            const cropGrade = document.getElementById("editCropGrade").value;
-            const quantity = document.getElementById("editQuantity").value;
-            const warehouseId = document.getElementById("editWarehouseId").value;
-            const warehouseLocation = document.getElementById("editWarehouseLocation").value;
-            
-            // Find and update the row
-            const rows = document.querySelectorAll("#productTableBody tr");
-            rows.forEach(row => {
-                if (row.cells[0].textContent === trackId) {
-                    row.cells[1].textContent = batchId;
-                    row.cells[2].textContent = cropGrade;
-                    row.cells[3].textContent = quantity;
-                    row.cells[4].textContent = warehouseId;
-                    row.cells[5].textContent = warehouseLocation;
+            // Handle Edit button clicks
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const trackID = this.getAttribute("data-id");
+                    const standardGradeID = this.getAttribute("data-standardgradeid");
+                    const warehouseID = this.getAttribute("data-warehouseid");
+                    const cropGrade = this.getAttribute("data-cropgrade");
+                    const location = this.getAttribute("data-location");
                     
-                    // Update locate button with new coordinates
-                    const locateBtn = row.querySelector(".locate-btn");
-                    locateBtn.setAttribute("data-lat", warehouseLocations[warehouseLocation].lat);
-                    locateBtn.setAttribute("data-lng", warehouseLocations[warehouseLocation].lng);
-                }
+                    // Populate edit form
+                    document.getElementById("edit_trackID").value = trackID;
+                    document.getElementById("edit_standardGradeID").value = standardGradeID;
+                    document.getElementById("edit_warehouseID").value = warehouseID;
+                    document.getElementById("edit_cropGrade").value = cropGrade;
+                    document.getElementById("edit_location").value = location;
+                    
+                    // Show edit modal
+                    document.getElementById("editProductModal").style.display = "block";
+                });
             });
             
-            // Close modal
-            editProductModal.style.display = "none";
-        });
-        
-        // Initialize action buttons for existing rows
-        initActionButtons();
-    });
-    
-    function initActionButtons() {
-        // Handle Edit button clicks
-        document.querySelectorAll(".edit-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const trackId = this.getAttribute("data-id");
-                const row = this.closest("tr");
-                
-                // Populate edit form
-                document.getElementById("editTrackId").value = trackId;
-                document.getElementById("editBatchId").value = row.cells[1].textContent;
-                document.getElementById("editCropGrade").value = row.cells[2].textContent;
-                document.getElementById("editQuantity").value = row.cells[3].textContent;
-                document.getElementById("editWarehouseId").value = row.cells[4].textContent;
-                document.getElementById("editWarehouseLocation").value = row.cells[5].textContent;
-                
-                // Show edit modal
-                document.getElementById("editProductModal").style.display = "block";
+            // Handle Locate button clicks
+            document.querySelectorAll(".locate-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const location = this.getAttribute("data-location");
+                    const mapDisplay = document.getElementById("mapDisplay");
+                    
+                    // Show map if hidden
+                    mapDisplay.style.display = "block";
+                    
+                    // Geocode the location to get coordinates
+                    // For demo purposes, using fixed coordinates for Bangladesh locations
+                    let coordinates = { lat: 23.8103, lng: 90.4125 }; // Default Dhaka
+                    
+                    if (location.includes("Dhaka")) {
+                        coordinates = { lat: 23.8103, lng: 90.4125 };
+                    } else if (location.includes("Chittagong") || location.includes("Chattogram")) {
+                        coordinates = { lat: 22.3569, lng: 91.7832 };
+                    } else if (location.includes("Rajshahi")) {
+                        coordinates = { lat: 24.3745, lng: 88.6042 };
+                    } else if (location.includes("Khulna")) {
+                        coordinates = { lat: 22.8456, lng: 89.5403 };
+                    } else if (location.includes("Sylhet")) {
+                        coordinates = { lat: 24.8949, lng: 91.8687 };
+                    } else if (location.includes("Barisal") || location.includes("Barishal")) {
+                        coordinates = { lat: 22.7010, lng: 90.3535 };
+                    } else if (location.includes("Rangpur")) {
+                        coordinates = { lat: 25.7439, lng: 89.2752 };
+                    } else if (location.includes("Mymensingh")) {
+                        coordinates = { lat: 24.7471, lng: 90.4203 };
+                    }
+                    
+                    // Clear existing markers
+                    clearMarkers();
+                    
+                    // Add new marker
+                    const marker = new google.maps.Marker({
+                        position: coordinates,
+                        map: map,
+                        title: "Product Location: " + location
+                    });
+                    
+                    markers.push(marker);
+                    
+                    // Center map on marker
+                    map.setCenter(coordinates);
+                    map.setZoom(10);
+                    
+                    // Scroll to map
+                    mapDisplay.scrollIntoView({ behavior: 'smooth' });
+                });
             });
-        });
-        
-        // Handle Delete button clicks
-        document.querySelectorAll(".delete-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                if (confirm("Are you sure you want to delete this product?")) {
-                    this.closest("tr").remove();
+            
+            // Customer tracking form functionality
+            const trackingForm = document.getElementById("trackingForm");
+            const trackingResult = document.getElementById("trackingResult");
+            
+            trackingForm.addEventListener("submit", function(e) {
+                e.preventDefault();
+                
+                const trackId = document.getElementById("trackId").value.trim();
+                
+                if (!trackId) {
+                    alert("Please enter a valid Track ID");
+                    return;
                 }
-            });
-        });
-        
-        // Handle Locate button clicks
-        document.querySelectorAll(".locate-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const lat = parseFloat(this.getAttribute("data-lat"));
-                const lng = parseFloat(this.getAttribute("data-lng"));
-                const mapDisplay = document.getElementById("mapDisplay");
                 
-                // Show map if hidden
-                mapDisplay.style.display = "block";
+                // In a real implementation, this would make an AJAX request to the server
+                // For demo purposes, we'll check against the products in the table
+                let found = false;
                 
-                // Center map on location and add marker
-                map.setCenter({ lat, lng });
-                map.setZoom(14);
-                
-                // Clear existing markers
-                clearMarkers();
-                
-                // Add new marker
-                const marker = new google.maps.Marker({
-                    position: { lat, lng },
-                    map: map,
-                    title: this.closest("tr").cells[5].textContent
+                document.querySelectorAll("#productTableBody tr").forEach(row => {
+                    const rowTrackId = row.cells[0].textContent;
+                    
+                    if (rowTrackId === trackId) {
+                        found = true;
+                        
+                        const grade = row.cells[3].textContent;
+                        const location = row.cells[4].textContent;
+                        
+                        // Update result display
+                        document.getElementById("statusText").textContent = "Available";
+                        document.getElementById("locationText").textContent = location;
+                        document.getElementById("gradeText").textContent = grade;
+                        
+                        // Show result
+                        trackingResult.classList.remove("d-none");
+                        
+                        // Add location to map
+                        const locationBtn = row.querySelector(".locate-btn");
+                        if (locationBtn) {
+                            // Trigger locate button click to show on map
+                            locationBtn.click();
+                        }
+                    }
                 });
                 
-                markers.push(marker);
+                if (!found) {
+                    document.getElementById("statusText").textContent = "Not Found";
+                    document.getElementById("locationText").textContent = "N/A";
+                    document.getElementById("gradeText").textContent = "N/A";
+                    trackingResult.classList.remove("d-none");
+                }
+            });
+            
+            // Warehouse ID change handler to auto-populate location
+            document.getElementById("warehouseID").addEventListener("change", function() {
+                const warehouseId = this.value;
+                const warehouseLocations = <?php echo json_encode($warehouse_locations); ?>;
                 
-                // Scroll to map
-                mapDisplay.scrollIntoView({ behavior: 'smooth' });
+                if (warehouseId && warehouseLocations[warehouseId]) {
+                    document.getElementById("location").value = warehouseLocations[warehouseId];
+                }
+            });
+            
+            // Same for edit form
+            document.getElementById("edit_warehouseID").addEventListener("change", function() {
+                const warehouseId = this.value;
+                const warehouseLocations = <?php echo json_encode($warehouse_locations); ?>;
+                
+                if (warehouseId && warehouseLocations[warehouseId]) {
+                    document.getElementById("edit_location").value = warehouseLocations[warehouseId];
+                }
             });
         });
-    }
-</script>
-
-<!-- Google Maps Script -->
-<script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
-</script>
+    </script>
+    
+    <!-- Google Maps API - Replace YOUR_API_KEY with your actual API key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+</body>
+</html>
 </body>
 </html>
