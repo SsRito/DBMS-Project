@@ -202,7 +202,7 @@ if(mysqli_num_rows($table_check) == 0) {
             <div class="col-lg-3">
                 <div class="d-flex align-items-center justify-content-start">
                     <i class="bi bi-phone-vibrate fs-1 text-primary me-2"></i>
-                    <h2 class="mb-0">019 091 091 91</h2>
+                    <h2 class="mb-0">01794017804</h2>
                 </div>
             </div>
             <div class="col-lg-6">
