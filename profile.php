@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -8,6 +10,77 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 
 if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['userID'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$userID = $_SESSION['userID'];
+
+// Fetch user data
+$sql = "SELECT * FROM user WHERE userID = '$userID'";
+$result = mysqli_query($conn, $sql);
+$userData = mysqli_fetch_assoc($result);
+
+// Handle profile update
+if (isset($_POST['update_profile'])) {
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $dob = mysqli_real_escape_string($conn, $_POST['dob']);
+
+    $updateSql = "UPDATE user SET phone='$phone', dob='$dob' WHERE userID='$userID'";
+    
+    if (mysqli_query($conn, $updateSql)) {
+        $success_message = "Profile updated successfully!";
+        // Refresh user data
+        $result = mysqli_query($conn, $sql);
+        $userData = mysqli_fetch_assoc($result);
+    } else {
+        $error_message = "Error updating profile: " . mysqli_error($conn);
+    }
+}
+
+// Handle password change
+if (isset($_POST['change_password'])) {
+    $current_password = mysqli_real_escape_string($conn, $_POST['current_password']);
+    $new_password = mysqli_real_escape_string($conn, $_POST['new_password']);
+    $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+
+    // Verify current password
+    $checkSql = "SELECT password FROM user WHERE userID='$userID'";
+    $checkResult = mysqli_query($conn, $checkSql);
+    $row = mysqli_fetch_assoc($checkResult);
+    
+    if ($row['password'] == $current_password) {
+        if ($new_password == $confirm_password) {
+            $updatePasswordSql = "UPDATE user SET password='$new_password', c_password='$new_password' WHERE userID='$userID'";
+            
+            if (mysqli_query($conn, $updatePasswordSql)) {
+                $password_success = "Password changed successfully!";
+            } else {
+                $password_error = "Error changing password: " . mysqli_error($conn);
+            }
+        } else {
+            $password_error = "New password and confirm password do not match!";
+        }
+    } else {
+        $password_error = "Current password is incorrect!";
+    }
+}
+
+// Handle account deletion
+if (isset($_POST['delete_account'])) {
+    $deleteSql = "DELETE FROM user WHERE userID='$userID'";
+    
+    if (mysqli_query($conn, $deleteSql)) {
+        session_destroy();
+        header("Location: login.php");
+        exit();
+    } else {
+        $delete_error = "Error deleting account: " . mysqli_error($conn);
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -102,26 +175,66 @@ if (!$conn) {
         .edit-btn:hover {
             background-color: #e6851d;
         }
+        
+        .password-btn {
+            background-color: #34AD54;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .password-btn:hover {
+            background-color: #2a8d44;
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background-color: #bd2130;
+        }
+
+        .modal-header {
+            background-color: #34AD54;
+            color: white;
+        }
+        
+        .modal-header.password-header {
+            background-color: #34AD54;
+        }
+        
+        .modal-header.delete-header {
+            background-color: #dc3545;
+        }
 
         .navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-width: 150px;
+            text-align: center;
+        }
 
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
+        }
 
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
-
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
+            color: white;
+        }
 
         @media (max-width: 576px) {
             .profile-header {
@@ -155,7 +268,7 @@ if (!$conn) {
         </div>
         <div class="col-lg-3">
             <div class="d-flex align-items-center justify-content-end">
-                <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.php" title="Logout">
+                <a class="btn btn-success btn-square rounded-circle logout-btn" href="logout.php" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
             </div>
@@ -211,28 +324,148 @@ if (!$conn) {
 
 <!-- Profile Section -->
 <div class="container">
+    <!-- Alert Messages -->
+    <?php if(isset($success_message)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?php echo $success_message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($error_message)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?php echo $error_message; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($password_success)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?php echo $password_success; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($password_error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?php echo $password_error; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(isset($delete_error)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?php echo $delete_error; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
     <div class="profile-container">
         <div class="profile-header">
             <img src="img/default-profile.jpg" alt="User Profile Picture">
             <div>
-                <h2>Rahim Uddin</h2>
-                <p class="text-muted">rahim@example.com</p>
+                <h2><?php echo $userData['name']; ?></h2>
+                <p class="text-muted"><?php echo $userData['email']; ?></p>
             </div>
         </div>
 
         <div class="profile-details">
             <h5>📞 Mobile Number</h5>
-            <p>+880 1700 123456</p>
+            <p><?php echo $userData['phone']; ?></p>
 
             <h5>🎂 Date of Birth</h5>
-            <p>15 March 1998</p>
-
-            <h5>🏡 Address</h5>
-            <p>Mirpur, Dhaka, Bangladesh</p>
+            <p><?php echo date('d F Y', strtotime($userData['dob'])); ?></p>
         </div>
 
         <div class="text-center mt-4">
-            <button class="edit-btn"><i class="fas fa-edit me-2"></i>Edit Profile</button>
+            <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                <i class="fas fa-edit me-2"></i>Edit Profile
+            </button>
+            <button class="password-btn ms-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                <i class="fas fa-key me-2"></i>Change Password
+            </button>
+            <button class="delete-btn ms-2" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                <i class="fas fa-trash-alt me-2"></i>Delete Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="">
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Mobile Number</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $userData['phone']; ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="dob" name="dob" value="<?php echo $userData['dob']; ?>" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header password-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" name="change_password" class="btn btn-success">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header delete-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Are you sure you want to delete your account? This action cannot be undone.</p>
+                <form method="post" action="">
+                    <div class="text-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="delete_account" class="btn btn-danger ms-2">Yes, Delete My Account</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
