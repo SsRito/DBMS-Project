@@ -1,3 +1,16 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
+
+$conn = mysqli_connect($servername, $username, $password, $database);
+
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,7 +115,7 @@
         </form>
 
         <div class="back-to-login">
-            Remember your password? <a href="login.html">Log in</a>
+            Remember your password? <a href="login.php">Log in</a>
         </div>
     </div>
 
@@ -121,7 +134,7 @@
             }
 
             alert("Password successfully reset! Redirecting to login...");
-            window.location.href = "login.html";
+            window.location.href = "login.php";
         });
     </script>
 

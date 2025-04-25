@@ -200,11 +200,11 @@ $result = $conn->query($sql);
             <div class="col-lg-3">
                 <div class="d-flex align-items-center justify-content-end">
                     <!-- Profile Icon -->
-                    <a class="btn btn-primary btn-square rounded-circle me-2" href="profile.html" title="Profile">
+                    <a class="btn btn-primary btn-square rounded-circle me-2" href="profile.php" title="Profile">
                         <i class="fas fa-user"></i>
                     </a>
                     <!-- Logout Icon -->
-                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.html" title="Logout">
+                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.php" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </a>
                 </div>
@@ -230,15 +230,15 @@ $result = $conn->query($sql);
                 <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
                 <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
                 <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
                 <div class="nav-item dropdown px-3">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
                     <div class="dropdown-menu text-center">
-                        <a href="service.html" class="dropdown-item">Service</a>
-                        <a href="contact.html" class="dropdown-item">Contact Us</a>
-                        <a href="about.html" class="dropdown-item">About</a>
+                        <a href="service.php" class="dropdown-item">Service</a>
+                        <a href="contact.php" class="dropdown-item">Contact Us</a>
+                        <a href="about.php" class="dropdown-item">About</a>
                     </div>
                 </div>
             </div>
