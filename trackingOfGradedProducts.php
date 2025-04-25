@@ -373,7 +373,7 @@ $result = mysqli_query($conn, $sql);
                     <div class="dropdown-menu text-center">
                         <a href="service.php" class="dropdown-item">Service</a>
                         <a href="contact.php" class="dropdown-item">Contact Us</a>
-                        <a href="about.html" class="dropdown-item">About</a>
+                        <a href="about.php" class="dropdown-item">About</a>
                     </div>
                 </div>
             </div>

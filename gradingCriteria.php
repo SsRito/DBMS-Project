@@ -227,11 +227,11 @@ $result = $conn->query($sql);
             <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
                 <a href="index.html" class="nav-item nav-link px-3">Home</a>
                 <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
-                <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
-                <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
-                <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
-                <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
+                <a href="qualityReport.php" class="nav-item nav-link px-3">Inspector Report</a>
+                <a href="qualityTrendAnalysis.php" class="nav-item nav-link px-3">Quality Trend</a>
+                <a href="transportationTracking.php" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="packagingTrackingSystem.php" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
                 <div class="nav-item dropdown px-3">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
