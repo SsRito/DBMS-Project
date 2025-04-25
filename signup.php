@@ -9,6 +9,37 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
 }
+
+// Process form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $dob = $_POST['dob'];
+    $password = $_POST['password'];
+    $c_password = $_POST['confirm_password'];
+    
+    // Check if passwords match
+    if ($password !== $c_password) {
+        echo "<script>alert('Passwords do not match!');</script>";
+    } else {
+        // Generate a random user ID (you might want to use a more sophisticated method)
+        $userID = 'U' . rand(100000, 999999);
+        
+        // Insert user data into database
+        $sql = "INSERT INTO user (userID, name, email, password, phone, dob, c_password) 
+                VALUES ('$userID', '$name', '$email', '$password', '$phone', '$dob', '$c_password')";
+        
+        if (mysqli_query($conn, $sql)) {
+            echo "<script>
+                    alert('Account created successfully!');
+                    window.location.href = 'login.php';
+                  </script>";
+        } else {
+            echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -129,19 +160,13 @@ if (!$conn) {
             <h2>Sign Up to <span style="color: #FF9933;">বাংলার</span> কৃষি</h2>
         </div>
 
-        <form class="signup-form" id="signupForm">
-            <input type="text" placeholder="Full Name" required>
-            <input type="email" placeholder="Email" required>
-            <input type="tel" placeholder="Mobile Number" required>
-            <input type="date" placeholder="Date of Birth" required>
-            <input type="password" placeholder="Password" id="password" required>
-            <input type="password" placeholder="Confirm Password" id="confirmPassword" required>
-
-            <div class="profile-upload">
-                <label class="profile-pic-label">Upload Profile Picture</label>
-                <input type="file" accept="image/*" id="profilePic">
-                <img id="preview" class="preview-img" src="#" alt="Preview" style="display:none;">
-            </div>
+        <form class="signup-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="tel" name="phone" placeholder="Mobile Number" required>
+            <input type="date" name="dob" placeholder="Date of Birth" required>
+            <input type="password" name="password" placeholder="Password" id="password" required>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" id="confirmPassword" required>
 
             <button type="submit" class="signup-btn">Create Account</button>
         </form>
@@ -153,39 +178,6 @@ if (!$conn) {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- JS for image preview & password match -->
-    <script>
-        // Profile image preview
-        document.getElementById("profilePic").addEventListener("change", function () {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const preview = document.getElementById("preview");
-                    preview.src = e.target.result;
-                    preview.style.display = "block";
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Dummy signup logic with password match check
-        document.getElementById("signupForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            const password = document.getElementById("password").value;
-            const confirmPassword = document.getElementById("confirmPassword").value;
-
-            if (password !== confirmPassword) {
-                alert("Passwords do not match!");
-                return;
-            }
-
-            alert("Account created successfully! (dummy)\nRedirecting to login...");
-            window.location.href = "login.html";
-        });
-    </script>
 
 </body>
 </html>
