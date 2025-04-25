@@ -1,3 +1,16 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
+
+$conn = mysqli_connect($servername, $username, $password, $database);
+
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -208,7 +221,7 @@
                 <input type="password" placeholder="Password" class="form-control" required>
             
                 <div class="forgot-password">
-                    <a href="forgotPass.html">Forgot Password?</a>
+                    <a href="forgotPass.php">Forgot Password?</a>
                 </div>
             
                 <button type="submit" class="login-btn">Log In</button>
@@ -220,7 +233,7 @@
                 </button>
 
                 <div class="already-account" style="text-align: center;">
-                    Don't have an account? <a href="signup.html">Sign up</a>
+                    Don't have an account? <a href="signup.php">Sign up</a>
                 </div>
 
             </form>
