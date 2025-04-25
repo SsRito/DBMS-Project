@@ -664,7 +664,80 @@ if (isset($_POST['update'])) {
     </script> 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      //
+       // Add New Entry Button Handler
+document.getElementById('addProductBtn').addEventListener('click', function() {
+    document.getElementById('addProductModal').style.display = 'block';
+});
+
+document.getElementById('cancelAddBtn').addEventListener('click', function() {
+    document.getElementById('addProductModal').style.display = 'none';
+    document.getElementById('addProductForm').reset();
+});
+
+// Edit Button Handler
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+        const id = this.getAttribute('data-id');
+        const quantity = this.getAttribute('data-quantity');
+        const cropGrade = this.getAttribute('data-cropgrade');
+        const size = this.getAttribute('data-size');
+        const shape = this.getAttribute('data-shape');
+        const colour = this.getAttribute('data-colour');
+        const infestation = this.getAttribute('data-infestation');
+        const cropTypeID = this.getAttribute('data-croptypeid');
+        
+        // Fill the edit form with data
+        document.getElementById('edit_standardGradeID').value = id;
+        document.getElementById('edit_quantity').value = quantity;
+        document.getElementById('edit_cropGrade').value = cropGrade;
+        document.getElementById('edit_criteria_size').value = size;
+        document.getElementById('edit_criteria_shape').value = shape;
+        document.getElementById('edit_criteria_colour').value = colour;
+        
+        // Handle checkbox for infestation (non-mandatory)
+        document.getElementById('edit_criteria_infestation').checked = (infestation === '1');
+        
+        // Show the edit modal without pre-selecting cropTypeID
+        document.getElementById('editProductModal').style.display = 'block';
+    });
+});
+
+document.getElementById('cancelEditBtn').addEventListener('click', function() {
+    document.getElementById('editProductModal').style.display = 'none';
+});
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    const addModal = document.getElementById('addProductModal');
+    const editModal = document.getElementById('editProductModal');
+    
+    if (event.target === addModal) {
+        addModal.style.display = 'none';
+        document.getElementById('addProductForm').reset();
+    }
+    
+    if (event.target === editModal) {
+        editModal.style.display = 'none';
+    }
+});
+
+
+// Remove required attribute from infestation checkboxes
+document.addEventListener('DOMContentLoaded', function() {
+    // For add form
+    const addInfestationCheckbox = document.getElementById('criteria_infestation');
+    if (addInfestationCheckbox) {
+        addInfestationCheckbox.removeAttribute('required');
+    }
+    
+    // For edit form
+    const editInfestationCheckbox = document.getElementById('edit_criteria_infestation');
+    if (editInfestationCheckbox) {
+        editInfestationCheckbox.removeAttribute('required');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', refreshEditButtons);
     </script>
     
 
