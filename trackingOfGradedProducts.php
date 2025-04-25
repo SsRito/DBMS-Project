@@ -1,3 +1,15 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
+
+$conn = mysqli_connect($servername, $username, $password, $database);
+
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -5,35 +17,102 @@
 <head>
     <style>
         .logout-btn {
-    background-color: #28a745
-    border-color #28a745;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
 
-    .logout-btn:hover {
-        background-color: #dc3545 !important; /* Red on hover */
-        border-color: #dc3545 !important;
-    }
+        .logout-btn:hover {
+            background-color: #dc3545 !important; /* Red on hover */
+            border-color: #dc3545 !important;
+        }
 
-    .navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-width: 150px;
+            text-align: center;
+        }
 
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
+        }
 
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
+            color: white;
+        }
 
+        /* Add new styles for table and modal */
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .product-table th, .product-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .product-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .action-btn {
+            margin: 2px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            width: 500px;
+            max-width: 90%;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .btn-container {
+            margin-top: 20px;
+            text-align: right;
+        }
     </style>
     
     <meta charset="utf-8">
@@ -147,14 +226,14 @@
     <div class="container">
         <div class="mx-auto text-center mb-4" style="max-width: 600px;">
             <h2 class="text-primary">Track Graded Products</h2>
-            <p>Enter your product ID to check grading, packaging, and transportation status.</p>
+            <p>Enter your Track ID to check grading status and location.</p>
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-6">
                 <div class="tracking-box">
                     <form id="trackingForm">
                         <div class="input-group mb-3">
-                            <input type="text" id="productId" class="form-control" placeholder="Enter Product ID" required>
+                            <input type="text" id="trackId" class="form-control" placeholder="Enter Product ID" required>
                             <button type="submit" class="btn btn-primary">Track</button>
                         </div>
                     </form>
@@ -204,106 +283,163 @@
     </div>
 </div>
 
-<!-- Update the product tracking with map section -->
+<!-- NEW SECTION: Graded Products Table -->
 <div class="container-fluid py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="text-primary">Track Product Location</h2>
-            <p class="text-muted">Enter the product ID to view its warehouse location(s).</p>
+        <div class="row mb-4">
+            <div class="col-12 text-end">
+                <button id="addProductBtn" class="btn btn-success"><i class="fas fa-plus"></i> Add New Product</button>
+            </div>
         </div>
-        <div class="row g-4 align-items-stretch">
-            <!-- Map Area (Initially Hidden) -->
-            <div class="col-lg-6 d-none" id="mapContainer">
-                <div class="tracking-box p-0">
-                    <div id="map" style="height: 400px; width: 100%;" class="rounded border"></div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="bg-white p-4 shadow-sm rounded">
+                    <div class="table-responsive">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>Track ID</th>
+                                    <th>Batch ID</th>
+                                    <th>Crop Grade</th>
+                                    <th>Quantity</th>
+                                    <th>Warehouse ID</th>
+                                    <th>Warehouse Location</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody">
+                                <!-- Sample data, to be populated dynamically -->
+                                <tr>
+                                    <td>TRK-001</td>
+                                    <td>BCH-5642</td>
+                                    <td>A+</td>
+                                    <td>500 kg</td>
+                                    <td>WH-001</td>
+                                    <td>Dhaka Central Warehouse</td>
+                                    <td>
+                                        <button class="btn btn-primary action-btn edit-btn" data-id="TRK-001"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-danger action-btn delete-btn" data-id="TRK-001"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-info action-btn locate-btn" data-id="TRK-001" data-lat="23.8120" data-lng="90.4044"><i class="fas fa-map-marker-alt"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>TRK-002</td>
+                                    <td>BCH-5643</td>
+                                    <td>B</td>
+                                    <td>350 kg</td>
+                                    <td>WH-002</td>
+                                    <td>Chattogram Distribution Hub</td>
+                                    <td>
+                                        <button class="btn btn-primary action-btn edit-btn" data-id="TRK-002"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-danger action-btn delete-btn" data-id="TRK-002"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-info action-btn locate-btn" data-id="TRK-002" data-lat="22.3569" data-lng="91.7832"><i class="fas fa-map-marker-alt"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <!-- Input + Results -->
-            <div class="col-lg-6">
-                <div class="tracking-box">
-                    <form id="mapTrackingForm" class="mb-3">
-                        <input type="text" id="mapProductId" class="form-control" placeholder="Enter Product ID (e.g. AGRI123)" required>
-                        <button type="submit" class="btn btn-primary mt-3 w-100">Track Product</button>
-                    </form>
-                    <div id="mapResult" class="bg-light p-3 rounded shadow-sm d-none">
-                        <h5>Product Location Info</h5>
-                        <ul id="warehouseList" class="mb-0"></ul>
-                    </div>
-                    <div id="notFoundMessage" class="alert alert-warning d-none mt-3">
-                        No warehouse found for this Product ID.
-                    </div>
-                </div>
+        </div>
+
+        <!-- Map for showing locations -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div id="mapDisplay" class="rounded border" style="height: 400px; width: 100%; display: none;"></div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    let map;
-    let markers = [];
+<!-- Add Product Modal -->
+<div id="addProductModal" class="modal-overlay">
+    <div class="modal-content">
+        <h4 class="mb-4">Add New Product</h4>
+        <form id="addProductForm">
+            <div class="form-group">
+                <label for="trackId">Track ID</label>
+                <input type="text" id="trackId" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="batchId">Batch ID</label>
+                <input type="text" id="batchId" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="cropGrade">Crop Grade</label>
+                <select id="cropGrade" class="form-control">
+                    <option value="A+">A+</option>
+                    <option value="A">A</option>
+                    <option value="B+">B+</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="text" id="quantity" class="form-control" placeholder="e.g. 500 kg" required>
+            </div>
+            <div class="form-group">
+                <label for="warehouseId">Warehouse ID</label>
+                <input type="text" id="warehouseId" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="warehouseLocation">Warehouse Location</label>
+                <select id="warehouseLocation" class="form-control">
+                    <option value="Dhaka Central Warehouse">Dhaka Central Warehouse</option>
+                    <option value="Chattogram Distribution Hub">Chattogram Distribution Hub</option>
+                </select>
+            </div>
+            <div class="btn-container">
+                <button type="button" id="cancelAddBtn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-    const productWarehouseMap = {
-        "AGRI123": [
-            { name: "Dhaka Central Warehouse", lat: 23.8120, lng: 90.4044 },
-            { name: "Chattogram Hub", lat: 22.3569, lng: 91.7832 }
-        ],
-        "AGRI456": [
-            { name: "Dhaka Central Warehouse", lat: 23.8120, lng: 90.4044 }
-        ]
-    };
-
-    function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 23.8103, lng: 90.4125 },
-            zoom: 7
-        });
-    }
-
-    function clearMarkers() {
-        markers.forEach(marker => marker.setMap(null));
-        markers = [];
-    }
-
-    document.getElementById("mapTrackingForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        const productId = document.getElementById("mapProductId").value.trim().toUpperCase();
-        const mapContainer = document.getElementById("mapContainer");
-        const resultsBox = document.getElementById("mapResult");
-        const list = document.getElementById("warehouseList");
-        const notFound = document.getElementById("notFoundMessage");
-
-        clearMarkers();
-        list.innerHTML = '';
-        resultsBox.classList.add("d-none");
-        notFound.classList.add("d-none");
-        mapContainer.classList.add("d-none");
-
-        const warehouses = productWarehouseMap[productId];
-
-        if (warehouses) {
-            mapContainer.classList.remove("d-none");
-            warehouses.forEach(location => {
-                const marker = new google.maps.Marker({
-                    position: { lat: location.lat, lng: location.lng },
-                    map,
-                    title: location.name
-                });
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `<strong>${location.name}</strong>`
-                });
-                marker.addListener("click", () => infoWindow.open(map, marker));
-                markers.push(marker);
-                list.innerHTML += `<li>${location.name}</li>`;
-            });
-            resultsBox.classList.remove("d-none");
-            map.setCenter({ lat: warehouses[0].lat, lng: warehouses[0].lng });
-            map.setZoom(8);
-        } else {
-            notFound.classList.remove("d-none");
-        }
-    });
-</script>
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="modal-overlay">
+    <div class="modal-content">
+        <h4 class="mb-4">Edit Product</h4>
+        <form id="editProductForm">
+            <input type="hidden" id="editTrackId">
+            <div class="form-group">
+                <label for="editBatchId">Batch ID</label>
+                <input type="text" id="editBatchId" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="editCropGrade">Crop Grade</label>
+                <select id="editCropGrade" class="form-control">
+                    <option value="A+">A+</option>
+                    <option value="A">A</option>
+                    <option value="B+">B+</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editQuantity">Quantity</label>
+                <input type="text" id="editQuantity" class="form-control" placeholder="e.g. 500 kg" required>
+            </div>
+            <div class="form-group">
+                <label for="editWarehouseId">Warehouse ID</label>
+                <input type="text" id="editWarehouseId" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="editWarehouseLocation">Warehouse Location</label>
+                <select id="editWarehouseLocation" class="form-control">
+                    <option value="Dhaka Central Warehouse">Dhaka Central Warehouse</option>
+                    <option value="Chattogram Distribution Hub">Chattogram Distribution Hub</option>
+                </select>
+            </div>
+            <div class="btn-container">
+                <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- Footer Start -->
     <div class="container-fluid bg-footer bg-primary text-white mt-5">
@@ -334,16 +470,16 @@
     <script>
         document.getElementById("trackingForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            const productId = document.getElementById("productId").value.trim();
+            const trackId = document.getElementById("trackId").value.trim();
             const resultBox = document.getElementById("trackingResult");
             const statusText = document.getElementById("statusText");
             const updateText = document.getElementById("updateText");
     
             // Simulate a lookup (replace this with real API call)
-            if (productId === "AGRI123") {
+            if (trackId === "AGRI123") {
                 statusText.textContent = "Graded and Ready for Packaging";
                 updateText.textContent = "2025-04-18 10:15 AM";
-            } else if (productId === "AGRI456") {
+            } else if (trackId === "AGRI456") {
                 statusText.textContent = "In Transit to Distribution Center";
                 updateText.textContent = "2025-04-17 03:42 PM";
             } else {
@@ -354,6 +490,201 @@
             resultBox.classList.remove("d-none");
         });
     </script>
+
+<script>
+    // Map initialization
+    let map;
+    let markers = [];
+    let warehouseLocations = {
+        "Dhaka Central Warehouse": { lat: 23.8120, lng: 90.4044 },
+        "Chattogram Distribution Hub": { lat: 22.3569, lng: 91.7832 }
+    };
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("mapDisplay"), {
+            center: { lat: 23.8103, lng: 90.4125 },
+            zoom: 7
+        });
+    }
+
+    // Clear existing markers from map
+    function clearMarkers() {
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+    }
+
+    // Initialize the map when the page loads
+    document.addEventListener("DOMContentLoaded", function() {
+        // Modal functionality
+        const addProductModal = document.getElementById("addProductModal");
+        const editProductModal = document.getElementById("editProductModal");
+        const addProductBtn = document.getElementById("addProductBtn");
+        const cancelAddBtn = document.getElementById("cancelAddBtn");
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
+        
+        // Open Add Product Modal
+        addProductBtn.addEventListener("click", function() {
+            addProductModal.style.display = "block";
+        });
+        
+        // Close Add Product Modal
+        cancelAddBtn.addEventListener("click", function() {
+            addProductModal.style.display = "none";
+        });
+        
+        // Close Edit Product Modal
+        cancelEditBtn.addEventListener("click", function() {
+            editProductModal.style.display = "none";
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener("click", function(event) {
+            if (event.target === addProductModal) {
+                addProductModal.style.display = "none";
+            }
+            if (event.target === editProductModal) {
+                editProductModal.style.display = "none";
+            }
+        });
+        
+        // Add Product Form Submission
+        document.getElementById("addProductForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const trackId = document.getElementById("trackId").value;
+            const batchId = document.getElementById("batchId").value;
+            const cropGrade = document.getElementById("cropGrade").value;
+            const quantity = document.getElementById("quantity").value;
+            const warehouseId = document.getElementById("warehouseId").value;
+            const warehouseLocation = document.getElementById("warehouseLocation").value;
+            
+            // Create table row
+            const tableBody = document.getElementById("productTableBody");
+            const newRow = tableBody.insertRow();
+            
+            newRow.innerHTML = `
+                <td>${trackId}</td>
+                <td>${batchId}</td>
+                <td>${cropGrade}</td>
+                <td>${quantity}</td>
+                <td>${warehouseId}</td>
+                <td>${warehouseLocation}</td>
+                <td>
+                    <button class="btn btn-primary action-btn edit-btn" data-id="${trackId}"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger action-btn delete-btn" data-id="${trackId}"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-info action-btn locate-btn" data-id="${trackId}" 
+                            data-lat="${warehouseLocations[warehouseLocation].lat}" 
+                            data-lng="${warehouseLocations[warehouseLocation].lng}">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </button>
+                </td>
+            `;
+            
+            // Reset form and close modal
+            document.getElementById("addProductForm").reset();
+            addProductModal.style.display = "none";
+            
+            // Reinitialize event listeners for the new buttons
+            initActionButtons();
+        });
+        
+        // Edit Product Form Submission
+        document.getElementById("editProductForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const trackId = document.getElementById("editTrackId").value;
+            const batchId = document.getElementById("editBatchId").value;
+            const cropGrade = document.getElementById("editCropGrade").value;
+            const quantity = document.getElementById("editQuantity").value;
+            const warehouseId = document.getElementById("editWarehouseId").value;
+            const warehouseLocation = document.getElementById("editWarehouseLocation").value;
+            
+            // Find and update the row
+            const rows = document.querySelectorAll("#productTableBody tr");
+            rows.forEach(row => {
+                if (row.cells[0].textContent === trackId) {
+                    row.cells[1].textContent = batchId;
+                    row.cells[2].textContent = cropGrade;
+                    row.cells[3].textContent = quantity;
+                    row.cells[4].textContent = warehouseId;
+                    row.cells[5].textContent = warehouseLocation;
+                    
+                    // Update locate button with new coordinates
+                    const locateBtn = row.querySelector(".locate-btn");
+                    locateBtn.setAttribute("data-lat", warehouseLocations[warehouseLocation].lat);
+                    locateBtn.setAttribute("data-lng", warehouseLocations[warehouseLocation].lng);
+                }
+            });
+            
+            // Close modal
+            editProductModal.style.display = "none";
+        });
+        
+        // Initialize action buttons for existing rows
+        initActionButtons();
+    });
+    
+    function initActionButtons() {
+        // Handle Edit button clicks
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const trackId = this.getAttribute("data-id");
+                const row = this.closest("tr");
+                
+                // Populate edit form
+                document.getElementById("editTrackId").value = trackId;
+                document.getElementById("editBatchId").value = row.cells[1].textContent;
+                document.getElementById("editCropGrade").value = row.cells[2].textContent;
+                document.getElementById("editQuantity").value = row.cells[3].textContent;
+                document.getElementById("editWarehouseId").value = row.cells[4].textContent;
+                document.getElementById("editWarehouseLocation").value = row.cells[5].textContent;
+                
+                // Show edit modal
+                document.getElementById("editProductModal").style.display = "block";
+            });
+        });
+        
+        // Handle Delete button clicks
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                if (confirm("Are you sure you want to delete this product?")) {
+                    this.closest("tr").remove();
+                }
+            });
+        });
+        
+        // Handle Locate button clicks
+        document.querySelectorAll(".locate-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const lat = parseFloat(this.getAttribute("data-lat"));
+                const lng = parseFloat(this.getAttribute("data-lng"));
+                const mapDisplay = document.getElementById("mapDisplay");
+                
+                // Show map if hidden
+                mapDisplay.style.display = "block";
+                
+                // Center map on location and add marker
+                map.setCenter({ lat, lng });
+                map.setZoom(14);
+                
+                // Clear existing markers
+                clearMarkers();
+                
+                // Add new marker
+                const marker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: map,
+                    title: this.closest("tr").cells[5].textContent
+                });
+                
+                markers.push(marker);
+                
+                // Scroll to map
+                mapDisplay.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    }
+</script>
 
 <!-- Google Maps Script -->
 <script async defer

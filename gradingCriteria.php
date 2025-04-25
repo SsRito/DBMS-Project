@@ -226,8 +226,8 @@ if (isset($_POST['add'])) {
                 <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
                 <a href="qualityReport.html" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.html" class="nav-item nav-link px-3">Quality Trend</a>
-                <a href="transportationTracking.html" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.html" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="transportationTracking.php" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
                 <a href="packagingTrackingSystem.html" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
                 <div class="nav-item dropdown px-3">
