@@ -121,6 +121,14 @@
     height: 700px;
 }
 
+.bg-hero-packageTrack {
+    background: url(../img/packageTrack.png);
+    background-position: center center ;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 700px;
+}
+
 .bg-hero-inspect {
     background: url(../img/inspector.png);
     background-position: center center ;

@@ -1,13 +1,122 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "agriculturesupplychain";
+include "database.php";
 
-$conn = mysqli_connect($servername, $username, $password, $database);
+// Initialize variables
+$updateId = "";
+$productName = "";
+$batchNumber = "";
+$packDate = "";
+$location = "";
+$message = "";
 
-if (!$conn) {
-    die("Sorry, failed to connect with database" . mysqli_connect_error());
+// Create operation
+if(isset($_POST['create'])) {
+    $productName = $_POST['productName'];
+    $batchNumber = $_POST['batchNumber'];
+    $packDate = $_POST['packDate'];
+    $location = $_POST['location'];
+    
+    $sql = "INSERT INTO packaging_tracking (product_name, batch_number, pack_date, location) 
+            VALUES ('$productName', '$batchNumber', '$packDate', '$location')";
+    
+    if(mysqli_query($conn, $sql)) {
+        $message = "<div class='alert alert-success'>Package tracking record created successfully!</div>";
+    } else {
+        $message = "<div class='alert alert-danger'>Error: " . mysqli_error($conn) . "</div>";
+    }
+}
+
+// Read operation - Fetch all records with error handling
+$result = mysqli_query($conn, "SELECT * FROM packaging_tracking ORDER BY id DESC");
+if($result === false) {
+    $message .= "<div class='alert alert-danger'>Error fetching records: " . mysqli_error($conn) . "</div>";
+    $result = null; // Set to null so we can check it later
+}
+
+// Update - Get record for update
+if(isset($_GET['edit'])) {
+    $updateId = $_GET['edit'];
+    $edit_query = mysqli_query($conn, "SELECT * FROM packaging_tracking WHERE id=$updateId");
+    
+    if($edit_query && mysqli_num_rows($edit_query) == 1) {
+        $edit_row = mysqli_fetch_assoc($edit_query);
+        $productName = $edit_row['product_name'];
+        $batchNumber = $edit_row['batch_number'];
+        $packDate = $edit_row['pack_date'];
+        $location = $edit_row['location'];
+    }
+}
+
+// Update operation
+if(isset($_POST['update'])) {
+    $updateId = $_POST['updateId'];
+    $productName = $_POST['productName'];
+    $batchNumber = $_POST['batchNumber'];
+    $packDate = $_POST['packDate'];
+    $location = $_POST['location'];
+    
+    $sql = "UPDATE packaging_tracking SET 
+            product_name='$productName', 
+            batch_number='$batchNumber', 
+            pack_date='$packDate', 
+            location='$location' 
+            WHERE id=$updateId";
+    
+    if(mysqli_query($conn, $sql)) {
+        $message = "<div class='alert alert-success'>Package tracking record updated successfully!</div>";
+        // Reset form fields after update
+        $updateId = "";
+        $productName = "";
+        $batchNumber = "";
+        $packDate = "";
+        $location = "";
+    } else {
+        $message = "<div class='alert alert-danger'>Error updating record: " . mysqli_error($conn) . "</div>";
+    }
+}
+
+// Delete operation
+if(isset($_GET['delete'])) {
+    $deleteId = $_GET['delete'];
+    
+    $sql = "DELETE FROM packaging_tracking WHERE id=$deleteId";
+    
+    if(mysqli_query($conn, $sql)) {
+        $message = "<div class='alert alert-success'>Package tracking record deleted successfully!</div>";
+    } else {
+        $message = "<div class='alert alert-danger'>Error deleting record: " . mysqli_error($conn) . "</div>";
+    }
+    
+    // Redirect to avoid resubmission
+    header("Location: packagingTrackingSystem.php");
+    exit();
+}
+
+// Check if table exists
+$table_check = mysqli_query($conn, "SHOW TABLES LIKE 'packaging_tracking'");
+if(mysqli_num_rows($table_check) == 0) {
+    // Table doesn't exist, create it
+    $create_table_sql = "CREATE TABLE packaging_tracking (
+        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        product_name VARCHAR(255) NOT NULL,
+        batch_number VARCHAR(50) NOT NULL,
+        pack_date DATE NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    if(mysqli_query($conn, $create_table_sql)) {
+        $message .= "<div class='alert alert-info'>Table 'packaging_tracking' created successfully!</div>";
+    } else {
+        $message .= "<div class='alert alert-danger'>Error creating table: " . mysqli_error($conn) . "</div>";
+    }
+    
+    // Try the query again
+    $result = mysqli_query($conn, "SELECT * FROM packaging_tracking ORDER BY id DESC");
+    if($result === false) {
+        $message .= "<div class='alert alert-danger'>Error fetching records: " . mysqli_error($conn) . "</div>";
+        $result = null;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -16,36 +125,46 @@ if (!$conn) {
 <head>
     <style>
         .logout-btn {
-    background-color: #28a745
-    border-color #28a745;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
 
-.logout-btn:hover {
-    background-color: #dc3545 !important; /* Red on hover */
-    border-color: #dc3545 !important;
-}
+        .logout-btn:hover {
+            background-color: #dc3545 !important; /* Red on hover */
+            border-color: #dc3545 !important;
+        }
 
-.navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-width: 150px;
+            text-align: center;
+        }
 
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
+        }
 
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
-
-</style>
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
+            color: white;
+        }
+        
+        .action-btns {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
     <meta charset="utf-8">
     <title>Banglar Krishi - Organic Farm Website</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -65,80 +184,16 @@ if (!$conn) {
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-    
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js">
-
-        const ctx = document.getElementById('locationChart').getContext('2d');
-        const locationCounts = {};
-    
-        const locationChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Packages by Location',
-                    data: [],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { precision:0 }
-                    }
-                }
-            }
-        });
-    
-        document.getElementById("trackingForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-    
-            const form = e.target;
-            const table = document.querySelector("#reportTable tbody");
-    
-            const productName = form.productName.value;
-            const batchNumber = form.batchNumber.value;
-            const packDate = form.packDate.value;
-            const location = form.location.value;
-    
-            const newRow = table.insertRow();
-            newRow.innerHTML = `
-                <td>${productName}</td>
-                <td>${batchNumber}</td>
-                <td>${packDate}</td>
-                <td>${location}</td>
-            `;
-    
-            // Update chart
-            if (locationCounts[location]) {
-                locationCounts[location]++;
-            } else {
-                locationCounts[location] = 1;
-                locationChart.data.labels.push(location);
-            }
-            locationChart.data.datasets[0].data = locationChart.data.labels.map(loc => locationCounts[loc]);
-            locationChart.update();
-    
-            form.reset();
-        });
-        </script>
-
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
-</head>
-
-<script>
     
-</script>
-
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 
 <body>
     <!-- Topbar Start -->
@@ -173,8 +228,7 @@ if (!$conn) {
     </div>
     <!-- Topbar End -->
 
-
-       <!-- Navbar Start -->
+    <!-- Navbar Start -->
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
         <a href="index.html" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
@@ -206,74 +260,107 @@ if (!$conn) {
     </nav>
     <!-- Navbar End -->
 
-
-
-<!-- Hero Start -->
-<div class="container-fluid bg-primary py-5 bg-hero-packageTracking mb-5">
-    <div class="container h-100 d-flex align-items-center justify-content-center">
-        <div class="row">
-            <div class="col-12 text-center">
-                <h1 class="display-1 text-white mb-0"></h1>
+    <!-- Hero Start -->
+    <div class="container-fluid bg-primary py-5 bg-hero-packageTrack mb-5">
+        <div class="container h-100 d-flex align-items-center justify-content-center">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-1 text-white mb-0"></h1>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Hero End -->
+    <!-- Hero End -->
 
-
-    <!-- Features Start -->
     <!-- Tracking System Start -->
-<div class="container my-5">
-    <div class="text-center mb-4">
-        <h2 class="text-primary">Packaging Tracking System</h2>
-        <p class="text-muted">Enter packaging details to track and report agricultural product movements.</p>
-    </div>
-    <form id="trackingForm" class="bg-light p-4 rounded shadow-sm">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Product Name" name="productName" required>
+    <div class="container my-5">
+        <div class="text-center mb-4">
+            <h2 class="text-primary">Packaging Tracking System</h2>
+            <p class="text-muted">Enter packaging details to track and report agricultural product movements.</p>
+        </div>
+        
+        <!-- Display message -->
+        <?php echo $message; ?>
+        
+        <!-- CRUD Form -->
+        <form method="post" action="" class="bg-light p-4 rounded shadow-sm">
+            <input type="hidden" name="updateId" value="<?php echo $updateId; ?>">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" placeholder="Product Name" name="productName" value="<?php echo $productName; ?>" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" placeholder="Batch Number" name="batchNumber" value="<?php echo $batchNumber; ?>" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" name="packDate" value="<?php echo $packDate; ?>" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" placeholder="Packaging Location" name="location" value="<?php echo $location; ?>" required>
+                </div>
+                <div class="col-12 text-end">
+                    <?php if($updateId == ""): ?>
+                        <!-- Create Button -->
+                        <button type="submit" name="create" class="btn btn-success px-4">
+                            <i class="fas fa-plus-circle"></i> Create Package Record
+                        </button>
+                    <?php else: ?>
+                        <!-- Update Button -->
+                        <button type="submit" name="update" class="btn btn-primary px-4">
+                            <i class="fas fa-edit"></i> Update Package Record
+                        </button>
+                        <!-- Cancel Button -->
+                        <a href="packagingTrackingSystem.php" class="btn btn-secondary px-4">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Batch Number" name="batchNumber" required>
-            </div>
-            <div class="col-md-4">
-                <input type="date" class="form-control" name="packDate" required>
-            </div>
-            <div class="col-md-6">
-                <input type="text" class="form-control" placeholder="Packaging Location" name="location" required>
-            </div>
-            <div class="col-md-6 text-end">
-                <button type="submit" class="btn btn-primary px-4">Add Entry</button>
+        </form>
+
+        <div class="mt-5">
+            <h4 class="text-secondary mb-3">Packaging Summary by Location</h4>
+            <canvas id="locationChart" height="100"></canvas>
+
+            <h4 class="text-secondary mb-3 mt-4">Tracking Report</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" id="reportTable">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>ID</th>
+                            <th>Product</th>
+                            <th>Batch No.</th>
+                            <th>Packaging Date</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if($result && mysqli_num_rows($result) > 0) {
+                            while($row = mysqli_fetch_assoc($result)) {
+                                echo "<tr>";
+                                echo "<td>" . $row['id'] . "</td>";
+                                echo "<td>" . $row['product_name'] . "</td>";
+                                echo "<td>" . $row['batch_number'] . "</td>";
+                                echo "<td>" . $row['pack_date'] . "</td>";
+                                echo "<td>" . $row['location'] . "</td>";
+                                echo "<td class='action-btns'>";
+                                echo "<a href='packagingTrackingSystem.php?edit=" . $row['id'] . "' class='btn btn-primary btn-sm'><i class='fas fa-edit'></i> Edit</a>";
+                                echo "<a href='packagingTrackingSystem.php?delete=" . $row['id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this record?\")'><i class='fas fa-trash-alt'></i> Delete</a>";
+                                echo "</td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='6' class='text-center'>No records found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </form>
-
-    <div class="mt-5">
-
-        <h4 class="text-secondary mb-3">Packaging Summary by Location</h4>
-        <canvas id="locationChart" height="100"></canvas>
-
-        <h4 class="text-secondary mb-3">Tracking Report</h4>
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle" id="reportTable">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Product</th>
-                        <th>Batch No.</th>
-                        <th>Packaging Date</th>
-                        <th>Location</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Entries appear here -->
-                </tbody>
-            </table>
-        </div>
     </div>
-</div>
-<!-- Tracking System End -->
-    <!-- Features Start -->
-    
+    <!-- Tracking System End -->
 
     <!-- Footer Start -->
     <div class="container-fluid bg-footer bg-primary text-white mt-5">
@@ -286,10 +373,8 @@ if (!$conn) {
     </div>
     <!-- Footer End -->
 
-
     <!-- Back to Top -->
     <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
-
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -299,8 +384,52 @@ if (!$conn) {
     <script src="lib/counterup/counterup.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
+    <!-- Chart JS Setup -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('locationChart').getContext('2d');
+        
+        // Process data for the chart
+        const locationData = {};
+        <?php
+        if($conn) {
+            $chartQuery = mysqli_query($conn, "SELECT location, COUNT(*) as count FROM packaging_tracking GROUP BY location");
+            if($chartQuery) {
+                while($chartRow = mysqli_fetch_assoc($chartQuery)) {
+                    echo "locationData['" . $chartRow['location'] . "'] = " . $chartRow['count'] . ";";
+                }
+            }
+        }
+        ?>
+        
+        const labels = Object.keys(locationData);
+        const data = Object.values(locationData);
+        
+        const locationChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Packages by Location',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
 </body>
-
 </html>
