@@ -428,7 +428,7 @@ if (isset($_POST['update'])) {
                     <input type="text" id="gradingTableSearch" class="form-control" placeholder="Search table...">
                 </div>
             </div>
-            <div class="mb-3 text-center">
+            <div class="mb-3 text-left">
                 <button id="addProductBtn" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Add New Entry
                 </button>
