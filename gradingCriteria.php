@@ -10,7 +10,7 @@ if (!$conn) {
     die("Sorry, failed to connect with database" . mysqli_connect_error());
 }
 
-// Handle Delete Operation
+//Delete
 if (isset($_POST['delete'])) {
     $standardGradeID = $_POST['delete'];
     $delete_sql = "DELETE FROM farmer_crop_type_grade WHERE standardGradeID = '$standardGradeID'";
@@ -22,7 +22,7 @@ if (isset($_POST['delete'])) {
     }
 }
 
-// Handle Add Operation
+//Add
 if (isset($_POST['add_entry'])) {
     $standardGradeID = $_POST['standardGradeID'];
     $quantity = $_POST['quantity'];
@@ -44,7 +44,7 @@ if (isset($_POST['add_entry'])) {
     }
 }
 
-// Handle Update Operation
+//Update
 if (isset($_POST['update'])) {
     $standardGradeID = $_POST['edit_standardGradeID'];
     $quantity = $_POST['edit_quantity'];
@@ -108,7 +108,7 @@ if (isset($_POST['update'])) {
             color: white;
         }
 
-        /* Add new styles for table and modal */
+
         .product-table {
             width: 100%;
             border-collapse: collapse;
@@ -159,8 +159,8 @@ if (isset($_POST['update'])) {
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            width: 350px; /* Slightly reduced width */
-            max-height: 80vh; /* Limit maximum height */
+            width: 350px;
+            max-height: 80vh;
             overflow-y: auto;
         }
         .form-group {
@@ -191,7 +191,7 @@ if (isset($_POST['update'])) {
             margin-top: 5px;
         }
         .btn-container {
-            margin-top: 12px; /* Reduced from 20px */
+            margin-top: 12px; 
             text-align: right;
         }
 
@@ -224,8 +224,6 @@ if (isset($_POST['update'])) {
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
-
-        /* Table styling with transitions */
         .product-table {
             width: 100%;
             border-collapse: collapse;
@@ -318,7 +316,7 @@ if (isset($_POST['update'])) {
 </head>
 
 <body>
-    <!-- Topbar Start -->
+    <!-- Topbar -->
     <div class="container-fluid px-5 d-none d-lg-block">
         <div class="row gx-5 py-3 align-items-center">
             <div class="col-lg-3">
@@ -348,10 +346,10 @@ if (isset($_POST['update'])) {
             </div>   
         </div>
     </div>
-    <!-- Topbar End -->
 
 
-    <!-- Navbar Start -->
+
+    <!-- Navbar-->
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
         <a href="home.php" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
@@ -381,10 +379,10 @@ if (isset($_POST['update'])) {
             </div>
         </div>
     </nav>
-    <!-- Navbar End -->
 
 
-    <!-- Hero Start -->
+
+    <!-- Hero-->
     <div class="container-fluid bg-primary py-5 bg-hero-grading mb-5">
         <div class="container h-100 d-flex align-items-center justify-content-center">
             <div class="row">
@@ -395,7 +393,7 @@ if (isset($_POST['update'])) {
         </div>
     </div>
 
-    <!-- Add this right after the Hero section before the Grading Table section -->
+
     <div class="container mt-3">
         <?php if(isset($success_message)): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -413,7 +411,7 @@ if (isset($_POST['update'])) {
     </div>
 
 
-    <!-- Grading Table Section Start -->
+    <!-- Grading Table Section -->
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-12">
@@ -507,8 +505,6 @@ if (isset($_POST['update'])) {
             </div>
         </div>
         
-
-       <!--grading table ends-->
         <!-- ADD NEW ENTRY -->
         <div id="addProductModal" class="modal-overlay">
             <div class="modal-content">
@@ -569,7 +565,7 @@ if (isset($_POST['update'])) {
                 </form>
             </div>
         </div>
-        <!-- Edit Product Modal -->
+        <!-- Edit -->
         <div id="editProductModal" class="modal-overlay">
             <div class="modal-content">
                 <h4>Edit Graded Product</h4>
@@ -627,7 +623,7 @@ if (isset($_POST['update'])) {
             </div>
         </div>
 
-        <!-- Footer Start -->
+        <!-- Footer-->
         <div class="container-fluid bg-footer bg-primary text-white mt-5">
         </div>
         <div class="container-fluid bg-dark text-white py-4">
@@ -635,7 +631,6 @@ if (isset($_POST['update'])) {
                 <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved.</p>
             </div>
         </div>
-        <!-- Footer End -->
 
 
         <!-- Back to Top -->
@@ -650,7 +645,6 @@ if (isset($_POST['update'])) {
         <script src="lib/counterup/counterup.min.js"></script>
         <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
-        <!-- Template Javascript -->
         <script src="js/main.js"></script>
         <script>
         // Search Filter
@@ -668,7 +662,7 @@ if (isset($_POST['update'])) {
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <script>
-       // Add New Entry Button Handler
+       // Add New Entry Button
             document.getElementById('addProductBtn').addEventListener('click', function() {
             document.getElementById('addProductModal').style.display = 'block';
             });
@@ -678,7 +672,7 @@ if (isset($_POST['update'])) {
             document.getElementById('addProductForm').reset();
             });
 
-        // Edit Button Handler
+        // Edit Button
             document.querySelectorAll(".edit-btn").forEach(btn => {
                 btn.addEventListener("click", function() {
                 const id = this.getAttribute('data-id');
@@ -710,7 +704,7 @@ if (isset($_POST['update'])) {
         document.getElementById('editProductModal').style.display = 'none';
         });
 
-// Close modals when clicking outside
+//clicking outside
         window.addEventListener('click', function(event) {
             const addModal = document.getElementById('addProductModal');
             const editModal = document.getElementById('editProductModal');
