@@ -441,7 +441,7 @@ if (isset($_POST['update'])) {
                             <th>Standard Grade ID</th>
                             <th>Quantity(kg)</th>
                             <th>Crop Grade</th>
-                            <th>Size(cm)</th>
+                            <th>Size</th>
                             <th>Shape</th>
                             <th>Colour</th>
                             <th>Infestation</th>
