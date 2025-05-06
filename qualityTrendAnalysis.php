@@ -324,7 +324,7 @@ if ($result && $result->num_rows > 0) {
 
 <!-- Table Section Start -->
 <div class="container my-5">
-    <h2 class="text-center mb-4">Grading, Packaging & Transportation Details</h2>
+    <h2 class="text-center mb-4">Quality Trend Analysis</h2>
     <div class="text-end mb-3">
         <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
             <i class="fas fa-plus-circle"></i> Add New Record
