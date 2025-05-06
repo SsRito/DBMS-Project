@@ -720,15 +720,15 @@ if (isset($_POST['update'])) {
         });
 
 
-// Remove required attribute from infestation checkboxes
+//Remove required attribute from infestation checkboxes
         document.addEventListener('DOMContentLoaded', function() {
-    // For add form
+    //For add form
             const addInfestationCheckbox = document.getElementById('criteria_infestation');
             if (addInfestationCheckbox) {
                 addInfestationCheckbox.removeAttribute('required');
             }
     
-    // For edit form
+    //For edit form
             const editInfestationCheckbox = document.getElementById('edit_criteria_infestation');
             if (editInfestationCheckbox) {
                 editInfestationCheckbox.removeAttribute('required');
