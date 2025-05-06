@@ -394,7 +394,6 @@ if (isset($_POST['update'])) {
             </div>
         </div>
     </div>
-    <!-- Hero End -->
 
     <!-- Add this right after the Hero section before the Grading Table section -->
     <div class="container mt-3">

@@ -1,9 +1,9 @@
--- phpMyAdmin SQL Dump
+-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 25, 2025 at 11:41 PM
+-- Generation Time: May 06, 2025 at 06:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -350,8 +350,8 @@ CREATE TABLE `packaging_tracking` (
 --
 
 INSERT INTO `packaging_tracking` (`id`, `product_name`, `batch_number`, `pack_date`, `location`, `created_at`) VALUES
-(1, 'P0001', 'B0001', '2025-04-04', 'Bangladesh', '2025-04-24 21:20:21'),
-(5, 'P0002', 'B0002', '2025-04-26', 'Japan', '2025-04-25 18:06:49');
+(1, 'P0001', 'B0001', '2025-04-04', 'Bangladesh', '2025-04-24 15:50:21'),
+(5, 'P0002', 'B0002', '2025-04-26', 'Japan', '2025-04-25 12:36:49');
 
 -- --------------------------------------------------------
 
@@ -484,8 +484,8 @@ CREATE TABLE `transportation_vehicles` (
 --
 
 INSERT INTO `transportation_vehicles` (`id`, `vehicle_id`, `vehicle_type`, `batch_id`, `location`, `created_at`, `updated_at`) VALUES
-(2, 'TRK0001', 'Truck', 'B0001', 'Rajshahi', '2025-04-25 20:07:11', '2025-04-25 20:07:11'),
-(5, 'TRK0002', 'Truck', 'B0003', 'Rangpur', '2025-04-25 20:28:46', '2025-04-25 20:28:46');
+(2, 'TRK0001', 'Truck', 'B0001', 'Rajshahi', '2025-04-25 14:37:11', '2025-04-25 14:37:11'),
+(5, 'TRK0002', 'Truck', 'B0003', 'Rangpur', '2025-04-25 14:58:46', '2025-04-25 14:58:46');
 
 -- --------------------------------------------------------
 
@@ -645,10 +645,33 @@ ALTER TABLE `farmer_crop_type_grade`
   ADD KEY `idx_farmer_crop_type_grade_cropTypeID` (`cropTypeID`);
 
 --
+-- Indexes for table `graded_p_track`
+--
+ALTER TABLE `graded_p_track`
+  ADD PRIMARY KEY (`trackID`),
+  ADD KEY `fk01` (`standardGradeID`),
+  ADD KEY `fk02` (`warehouseID`);
+
+--
+-- Indexes for table `inspector_records`
+--
+ALTER TABLE `inspector_records`
+  ADD PRIMARY KEY (`record_id`),
+  ADD KEY `fk03` (`batchID`),
+  ADD KEY `fk04` (`packageID`),
+  ADD KEY `fk05` (`standardGradeID`);
+
+--
 -- Indexes for table `packaging`
 --
 ALTER TABLE `packaging`
   ADD PRIMARY KEY (`packageID`);
+
+--
+-- Indexes for table `packaging_tracking`
+--
+ALTER TABLE `packaging_tracking`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `retailer`
@@ -676,7 +699,20 @@ ALTER TABLE `sensor_data`
 --
 ALTER TABLE `transport`
   ADD PRIMARY KEY (`vehicleID`),
-  ADD KEY `packageID` (`packageID`);
+  ADD KEY `transport_ibfk_1` (`packageID`);
+
+--
+-- Indexes for table `transportation_vehicles`
+--
+ALTER TABLE `transportation_vehicles`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk06` (`batch_id`);
+
+--
+-- Indexes for table `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`userID`);
 
 --
 -- Indexes for table `vendor`
@@ -704,36 +740,51 @@ ALTER TABLE `wholeseller`
 -- Constraints for table `crop_batch`
 --
 ALTER TABLE `crop_batch`
-  ADD CONSTRAINT `crop_batch_ibfk_1` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`),
-  ADD CONSTRAINT `crop_batch_ibfk_2` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`);
+  ADD CONSTRAINT `crop_batch_ibfk_1` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `crop_batch_ibfk_2` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `delivery`
 --
 ALTER TABLE `delivery`
-  ADD CONSTRAINT `delivery_ibfk_1` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`),
-  ADD CONSTRAINT `delivery_ibfk_2` FOREIGN KEY (`vendorLicense`) REFERENCES `vendor` (`vendorLicense`),
-  ADD CONSTRAINT `delivery_ibfk_3` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`),
-  ADD CONSTRAINT `delivery_ibfk_4` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`);
+  ADD CONSTRAINT `delivery_ibfk_1` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `delivery_ibfk_2` FOREIGN KEY (`vendorLicense`) REFERENCES `vendor` (`vendorLicense`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `delivery_ibfk_3` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `delivery_ibfk_4` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `farmer_crop`
 --
 ALTER TABLE `farmer_crop`
-  ADD CONSTRAINT `farmer_crop_ibfk_1` FOREIGN KEY (`cropID`) REFERENCES `crop` (`cropID`),
-  ADD CONSTRAINT `farmer_crop_ibfk_2` FOREIGN KEY (`farmerID`) REFERENCES `farmer` (`farmerID`);
+  ADD CONSTRAINT `farmer_crop_ibfk_1` FOREIGN KEY (`cropID`) REFERENCES `crop` (`cropID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `farmer_crop_ibfk_2` FOREIGN KEY (`farmerID`) REFERENCES `farmer` (`farmerID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `farmer_crop_type`
 --
 ALTER TABLE `farmer_crop_type`
-  ADD CONSTRAINT `farmer_crop_type_ibfk_1` FOREIGN KEY (`farmerCropID`) REFERENCES `farmer_crop` (`farmerCropID`);
+  ADD CONSTRAINT `farmer_crop_type_ibfk_1` FOREIGN KEY (`farmerCropID`) REFERENCES `farmer_crop` (`farmerCropID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `farmer_crop_type_grade`
 --
 ALTER TABLE `farmer_crop_type_grade`
-  ADD CONSTRAINT `farmer_crop_type_grade_ibfk_1` FOREIGN KEY (`cropTypeID`) REFERENCES `farmer_crop_type` (`cropTypeID`);
+  ADD CONSTRAINT `farmer_crop_type_grade_ibfk_1` FOREIGN KEY (`cropTypeID`) REFERENCES `farmer_crop_type` (`cropTypeID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `graded_p_track`
+--
+ALTER TABLE `graded_p_track`
+  ADD CONSTRAINT `fk01` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk02` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `inspector_records`
+--
+ALTER TABLE `inspector_records`
+  ADD CONSTRAINT `fk03` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk04` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk05` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `retailer`
@@ -745,20 +796,26 @@ ALTER TABLE `retailer`
 -- Constraints for table `sensor`
 --
 ALTER TABLE `sensor`
-  ADD CONSTRAINT `sensor_ibfk_1` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`),
-  ADD CONSTRAINT `sensor_ibfk_2` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`);
+  ADD CONSTRAINT `sensor_ibfk_1` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `sensor_ibfk_2` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `sensor_data`
 --
 ALTER TABLE `sensor_data`
-  ADD CONSTRAINT `sensor_data_ibfk_1` FOREIGN KEY (`sensorID`) REFERENCES `sensor` (`sensorID`);
+  ADD CONSTRAINT `sensor_data_ibfk_1` FOREIGN KEY (`sensorID`) REFERENCES `sensor` (`sensorID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `transport`
 --
 ALTER TABLE `transport`
-  ADD CONSTRAINT `transport_ibfk_1` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`);
+  ADD CONSTRAINT `transport_ibfk_1` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `transportation_vehicles`
+--
+ALTER TABLE `transportation_vehicles`
+  ADD CONSTRAINT `fk06` FOREIGN KEY (`batch_id`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `wholeseller`
