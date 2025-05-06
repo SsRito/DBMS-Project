@@ -1,16 +1,3 @@
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "agriculturesupplychain";
-
-$conn = mysqli_connect($servername, $username, $password, $database);
-
-if (!$conn) {
-    die("Sorry, failed to connect with database" . mysqli_connect_error());
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -244,6 +231,48 @@ if (!$conn) {
             background-color: #dc3545 !important; /* Red on hover */
             border-color: #dc3545 !important;
         }
+       
+        .chart-container {
+            width: 500px;
+            margin: 20px auto;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .chart-container {
+            width: 400px;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .chart-container {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .chart-container {
+            width: 400px;
+            margin: 20px auto;
+            background: #f0f8ff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
     </style>
 </head>
 
@@ -531,39 +560,6 @@ if (!$conn) {
     </div>
     <!-- Product Categories End -->
 
-    <!-- Stats Counter Start -->
-    <div class="container-fluid parallax-section py-5" style="background-image: url('img/stats-bg.jpg');">
-        <div class="container py-5">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="counter-box">
-                        <h1 class="display-4 text-primary mb-0" data-toggle="counter-up">12,500</h1>
-                        <p class="fs-5 mb-0">Farmers Registered</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="counter-box">
-                        <h1 class="display-4 text-primary mb-0" data-toggle="counter-up">45</h1>
-                        <p class="fs-5 mb-0">Districts Covered</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="counter-box">
-                        <h1 class="display-4 text-primary mb-0" data-toggle="counter-up">120</h1>
-                        <p class="fs-5 mb-0">Product Categories</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="counter-box">
-                        <h1 class="display-4 text-primary mb-0" data-toggle="counter-up">98</h1>
-                        <p class="fs-5 mb-0">Percentage Accuracy</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Stats Counter End -->
-
     <!-- Product Journey Start -->
     <div class="container-fluid py-5 bg-light">
         <div class="container">
@@ -608,51 +604,73 @@ if (!$conn) {
         </div>
     </div>
     <!-- Product Journey End -->
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <h2>Agriculture Quality Analytics</h2>
+    </div>
 
-    <!-- Data Visualization Start -->
-    <div class="container-fluid py-5">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h1 class="text-primary">Quality Trends</h1>
-                <p class="text-muted">Data-driven insights into agricultural product quality across Bangladesh</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Product Quality by Region</h4>
-                        <div class="chart-container">
-                            <canvas id="qualityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Quality Improvement Over Time</h4>
-                        <div class="chart-container">
-                            <canvas id="trendChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mt-4">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Product Distribution by Grade</h4>
-                        <div class="chart-container">
-                            <canvas id="gradeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mt-4">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Seasonal Quality Variations</h4>
-                        <div class="chart-container">
-                            <canvas id="seasonalChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="dashboard"> 
+        <div class="chart-container">
+            <h4>Crop Quantity by Grade</h4>
+            <canvas id="quantityChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h4>Average Size by Crop Grade</h4>
+            <canvas id="sizeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h4>Infestation Level Distribution</h4>
+            <canvas id="infestationChart"></canvas>
         </div>
     </div>
-    <!-- Data Visualization End -->
+
+    <!-- Data Visualization Start -->
+    <?php
+    // Connect to database
+    $conn = new mysqli("localhost", "root", "", "agriculturesupplychain");
+
+    // Fetch total quantity by grade
+    $quantityResult = $conn->query("SELECT cropGrade, SUM(quantity) as total FROM farmer_crop_type_grade GROUP BY cropGrade");
+    $quantityData = [];
+    while ($row = $quantityResult->fetch_assoc()) {
+        $quantityData[$row['cropGrade']] = (float)$row['total'];
+    }
+
+    // Fetch average size by grade
+    $sizeResult = $conn->query("SELECT cropGrade, AVG(criteria_size) as avg_size FROM farmer_crop_type_grade GROUP BY cropGrade");
+    $sizeData = [];
+    while ($row = $sizeResult->fetch_assoc()) {
+        $sizeData[$row['cropGrade']] = round((float)$row['avg_size'], 2);
+    }
+
+    // Infestation level distribution (0-2, 2-4, ..., 8-10)
+    $infestationResult = $conn->query("
+        SELECT 
+            CASE 
+                WHEN criteria_infestation BETWEEN 0 AND 2 THEN '0-2'
+                WHEN criteria_infestation > 2 AND criteria_infestation <= 4 THEN '2-4'
+                WHEN criteria_infestation > 4 AND criteria_infestation <= 6 THEN '4-6'
+                WHEN criteria_infestation > 6 AND criteria_infestation <= 8 THEN '6-8'
+                WHEN criteria_infestation > 8 THEN '8-10'
+            END as range_label,
+            COUNT(*) as count
+        FROM farmer_crop_type_grade
+        GROUP BY range_label
+        ORDER BY range_label ASC
+    ");
+    $infestationData = [];
+    while ($row = $infestationResult->fetch_assoc()) {
+        $infestationData[$row['range_label']] = (int)$row['count'];
+    }
+
+    // Output as JS variables
+    echo "<script>
+        const quantityData = " . json_encode($quantityData) . ";
+        const sizeData = " . json_encode($sizeData) . ";
+        const infestationData = " . json_encode($infestationData) . ";
+    </script>";
+    ?>
+
 
     <!-- Testimonial Start -->
     <div class="container-fluid py-5 bg-light">
@@ -730,13 +748,13 @@ if (!$conn) {
     </div>
     <div class="container-fluid text-white py-4" style="background: #051225;">
         <div class="container text-center">
-            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">বাংলার কৃষি</a>. All Rights Reserved. 2023</p>
+            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved</p>
         </div>
     </div>
     <!-- Footer End -->
 
     <!-- Back to Top -->
-    <a href="#" class="btn btn-primary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -750,193 +768,114 @@ if (!$conn) {
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
 
-    <!-- Custom JavaScript for Charts -->
-    <script>
-        // Quality by Region Chart
-        const qualityCtx = document.getElementById('qualityChart').getContext('2d');
-        const qualityChart = new Chart(qualityCtx, {
+    <!-- JavaScript for Charts -->
+<?php
+    // Connect to database
+    $conn = new mysqli("localhost", "root", "", "agriculturesupplychain");
+
+    // Fetch total quantity by grade
+    $quantityResult = $conn->query("SELECT cropGrade, SUM(quantity) as total FROM farmer_crop_type_grade GROUP BY cropGrade");
+    $quantityData = [];
+    while ($row = $quantityResult->fetch_assoc()) {
+        $quantityData[$row['cropGrade']] = (float)$row['total'];
+    }
+
+    // Fetch average size by grade
+    $sizeResult = $conn->query("SELECT cropGrade, AVG(criteria_size) as avg_size FROM farmer_crop_type_grade GROUP BY cropGrade");
+    $sizeData = [];
+    while ($row = $sizeResult->fetch_assoc()) {
+        $sizeData[$row['cropGrade']] = round((float)$row['avg_size'], 2);
+    }
+
+    // Infestation level distribution (0-2, 2-4, ..., 8-10)
+    $infestationResult = $conn->query("
+        SELECT 
+            CASE 
+                WHEN criteria_infestation BETWEEN 0 AND 2 THEN '0-2'
+                WHEN criteria_infestation > 2 AND criteria_infestation <= 4 THEN '2-4'
+                WHEN criteria_infestation > 4 AND criteria_infestation <= 6 THEN '4-6'
+                WHEN criteria_infestation > 6 AND criteria_infestation <= 8 THEN '6-8'
+                WHEN criteria_infestation > 8 THEN '8-10'
+            END as range_label,
+            COUNT(*) as count
+        FROM farmer_crop_type_grade
+        GROUP BY range_label
+        ORDER BY range_label ASC
+    ");
+    $infestationData = [];
+    while ($row = $infestationResult->fetch_assoc()) {
+        $infestationData[$row['range_label']] = (int)$row['count'];
+    }
+
+    // Output as JS variables
+    echo "<script>
+        const quantityData = " . json_encode($quantityData) . ";
+        const sizeData = " . json_encode($sizeData) . ";
+        const infestationData = " . json_encode($infestationData) . ";
+    </script>";
+    ?>
+
+<canvas id="barChart" width="400" height="200"></canvas>
+<canvas id="pieChart" width="400" height="200"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        // Chart 1: Total Quantity by Grade
+        new Chart(document.getElementById("quantityChart"), {
             type: 'bar',
             data: {
-                labels: ['Dhaka', 'Rajshahi', 'Khulna', 'Chittagong', 'Sylhet', 'Barisal', 'Rangpur'],
+                labels: Object.keys(quantityData),
                 datasets: [{
-                    label: 'Average Quality Score',
-                    data: [86, 92, 88, 85, 90, 82, 89],
-                    backgroundColor: [
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Quality Trend Chart
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        const trendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Quality Score 2022',
-                    data: [78, 80, 79, 81, 82, 84, 85, 86, 87, 88, 89, 90],
-                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
-                    borderColor: 'rgba(92, 184, 92, 1)',
-                    borderWidth: 2,
-                    fill: true
-                },
-                {
-                    label: 'Quality Score 2023',
-                    data: [82, 83, 85, 86, 88, 90, 91, 92, 93, 94, 95, 96],
-                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
-                    borderColor: 'rgba(66, 133, 244, 1)',
-                    borderWidth: 2,
-                    fill: true
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 75,
-                        max: 100
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Grade Distribution Chart
-        const gradeCtx = document.getElementById('gradeChart').getContext('2d');
-        const gradeChart = new Chart(gradeCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Premium', 'Grade A', 'Grade B', 'Grade C', 'Rejected'],
-                datasets: [{
-                    data: [25, 40, 20, 10, 5],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(255, 159, 64, 0.7)',
-                        'rgba(255, 99, 132, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
+                    label: "Total Quantity",
+                    data: Object.values(quantityData),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
             }
         });
 
-        // Seasonal Chart
-        const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
-        const seasonalChart = new Chart(seasonalCtx, {
-            type: 'radar',
+        // Chart 2: Average Size by Crop Grade
+        new Chart(document.getElementById("sizeChart"), {
+            type: 'bar',
             data: {
-                labels: ['Rice', 'Vegetables', 'Fruits', 'Spices', 'Pulses', 'Oilseeds'],
+                labels: Object.keys(sizeData),
                 datasets: [{
-                    label: 'Winter Quality',
-                    data: [90, 85, 88, 92, 87, 84],
-                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
-                    borderColor: 'rgba(66, 133, 244, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(66, 133, 244, 1)'
-                },
-                {
-                    label: 'Summer Quality',
-                    data: [82, 90, 93, 85, 80, 82],
-                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
-                    borderColor: 'rgba(92, 184, 92, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(92, 184, 92, 1)'
-                },
-                {
-                    label: 'Monsoon Quality',
-                    data: [75, 78, 76, 82, 85, 80],
-                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    label: "Average Size",
+                    data: Object.values(sizeData),
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
                     borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 159, 64, 1)'
+                    borderWidth: 1
                 }]
             },
             options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20
-                        }
-                    }
-                },
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
             }
         });
 
-        // Initialize owl carousel for testimonials
-        $(document).ready(function(){
-            $(".testimonial-carousel").owlCarousel({
-                autoplay: true,
-                smartSpeed: 1000,
-                margin: 24,
-                dots: true,
-                loop: true,
-                nav: false,
-                responsive: {
-                    0: {
-                        items: 1
-                    },
-                    768: {
-                        items: 2
-                    },
-                    992: {
-                        items: 3
-                    }
-                }
-            });
-            
-            // Initialize counter up
-            $('.counter-up').counterUp({
-                delay: 10,
-                time: 2000
-            });
+        // Chart 3: Infestation Level Distribution
+        new Chart(document.getElementById("infestationChart"), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(infestationData),
+                datasets: [{
+                    label: "Frequency",
+                    data: Object.values(infestationData),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
         });
     </script>
 </body>
-
 </html>

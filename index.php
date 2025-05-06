@@ -248,7 +248,7 @@ if (!$conn) {
             </div>
             <div class="col-lg-6">
                 <div class="d-flex align-items-center justify-content-center">
-                    <a href="home.php" class="navbar-brand ms-lg-5 d-flex align-items-center">
+                    <a href="index.php" class="navbar-brand ms-lg-5 d-flex align-items-center">
                         <img src="img/Logo.png" alt="Banglar Krishi Logo" class="me-3" style="height: 90px; width: auto;">
                         <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
                     </a>
@@ -419,7 +419,7 @@ if (!$conn) {
                     <div class="position-relative float-animation">
                         <img class="img-fluid rounded w-100" src="img/about.jpg" alt="">
                         <div class="position-absolute start-0 bottom-0 bg-primary rounded p-3" style="width: 150px; height: 150px;">
-                            <h1 class="text-white text-center mb-0">25+</h1>
+                            <h1 class="text-white text-center mb-0">2+</h1>
                             <h4 class="text-white text-center mt-0">Years Experience</h4>
                         </div>
                     </div>
@@ -461,7 +461,6 @@ if (!$conn) {
                             </div>
                         </div>
                     </div>
-                    <a href="login.php" class="btn btn-primary py-3 px-5">Explore More</a>
                 </div>
             </div>
         </div>
@@ -595,50 +594,6 @@ if (!$conn) {
     </div>
     <!-- Product Journey End -->
 
-    <!-- Data Visualization Start -->
-    <div class="container-fluid py-5">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h1 class="text-primary">Quality Trends</h1>
-                <p class="text-muted">Data-driven insights into agricultural product quality across Bangladesh</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Product Quality by Region</h4>
-                        <div class="chart-container">
-                            <canvas id="qualityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Quality Improvement Over Time</h4>
-                        <div class="chart-container">
-                            <canvas id="trendChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mt-4">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Product Distribution by Grade</h4>
-                        <div class="chart-container">
-                            <canvas id="gradeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mt-4">
-                    <div class="bg-white p-4 rounded shadow-sm">
-                        <h4 class="mb-4">Seasonal Quality Variations</h4>
-                        <div class="chart-container">
-                            <canvas id="seasonalChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Data Visualization End -->
 
     <!-- Testimonial Start -->
     <div class="container-fluid py-5 bg-light">
@@ -738,13 +693,13 @@ if (!$conn) {
     </div>
     <div class="container-fluid text-white py-4" style="background: #051225;">
         <div class="container text-center">
-            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">বাংলার কৃষি</a>. All Rights Reserved. 2023</p>
+            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglsr Krishi</a>. All Rights Reserved.</p>
         </div>
     </div>
     <!-- Footer End -->
 
     <!-- Back to Top -->
-    <a href="#" class="btn btn-primary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -760,190 +715,12 @@ if (!$conn) {
 
     <!-- Custom JavaScript for Charts -->
     <script>
-        // Quality by Region Chart
-        const qualityCtx = document.getElementById('qualityChart').getContext('2d');
-        const qualityChart = new Chart(qualityCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Dhaka', 'Rajshahi', 'Khulna', 'Chittagong', 'Sylhet', 'Barisal', 'Rangpur'],
-                datasets: [{
-                    label: 'Average Quality Score',
-                    data: [86, 92, 88, 85, 90, 82, 89],
-                    backgroundColor: [
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(92, 184, 92, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(92, 184, 92, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Quality Trend Chart
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        const trendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Quality Score 2022',
-                    data: [78, 80, 79, 81, 82, 84, 85, 86, 87, 88, 89, 90],
-                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
-                    borderColor: 'rgba(92, 184, 92, 1)',
-                    borderWidth: 2,
-                    fill: true
-                },
-                {
-                    label: 'Quality Score 2023',
-                    data: [82, 83, 85, 86, 88, 90, 91, 92, 93, 94, 95, 96],
-                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
-                    borderColor: 'rgba(66, 133, 244, 1)',
-                    borderWidth: 2,
-                    fill: true
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 75,
-                        max: 100
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Grade Distribution Chart
-        const gradeCtx = document.getElementById('gradeChart').getContext('2d');
-        const gradeChart = new Chart(gradeCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Premium', 'Grade A', 'Grade B', 'Grade C', 'Rejected'],
-                datasets: [{
-                    data: [25, 40, 20, 10, 5],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(92, 184, 92, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(255, 159, 64, 0.7)',
-                        'rgba(255, 99, 132, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(92, 184, 92, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Seasonal Chart
-        const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
-        const seasonalChart = new Chart(seasonalCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Rice', 'Vegetables', 'Fruits', 'Spices', 'Pulses', 'Oilseeds'],
-                datasets: [{
-                    label: 'Winter Quality',
-                    data: [90, 85, 88, 92, 87, 84],
-                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
-                    borderColor: 'rgba(66, 133, 244, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(66, 133, 244, 1)'
-                },
-                {
-                    label: 'Summer Quality',
-                    data: [82, 90, 93, 85, 80, 82],
-                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
-                    borderColor: 'rgba(92, 184, 92, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(92, 184, 92, 1)'
-                },
-                {
-                    label: 'Monsoon Quality',
-                    data: [75, 78, 76, 82, 85, 80],
-                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 159, 64, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20
-                        }
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Initialize owl carousel for testimonials
-        $(document).ready(function(){
-            $(".testimonial-carousel").owlCarousel({
-                autoplay: true,
-                smartSpeed: 1000,
-                margin: 24,
-                dots: true,
-                loop: true,
-                nav: false,
-                responsive: {
-                    0: {
-                        items: 1
-                    },
-                    768: {
-                        items: 2
-                    },
-                    992: {
-                        items: 3
-                    }
-                }
-            });
-            
             // Initialize counter up
             $('.counter-up').counterUp({
                 delay: 10,
                 time: 2000
             });
-        });
+
     </script>
 </body>
 
