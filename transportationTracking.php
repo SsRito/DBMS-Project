@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $batchID = mysqli_real_escape_string($conn, $_POST['batchID']);
         $location = mysqli_real_escape_string($conn, $_POST['location']);
         
-        $sql = "INSERT INTO transportation_vehicles (vehicle_id, vehicle_type, batch_id, location) 
+        $sql = "INSERT INTO transportation_vehicles (vehicle_id, vehicle_type, batchID, location) 
                 VALUES ('$vehicleID', '$vehicleType', '$batchID', '$location')";
         
         if (mysqli_query($conn, $sql)) {
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $location = mysqli_real_escape_string($conn, $_POST['editLocation']);
         
         $sql = "UPDATE transportation_vehicles 
-                SET vehicle_type='$vehicleType', batch_id='$batchID', location='$location' 
+                SET vehicle_type='$vehicleType', batchID='$batchID', location='$location' 
                 WHERE vehicle_id='$vehicleID'";
         
         if (mysqli_query($conn, $sql)) {
@@ -61,9 +61,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Fetch all vehicles
-$sql = "SELECT * FROM transportation_vehicles";
+// Fetch all vehicles with proper ORDER BY
+$sql = "SELECT * FROM transportation_vehicles ORDER BY updated_at DESC";
 $result = mysqli_query($conn, $sql);
+
+// Get all available batch IDs for autocomplete
+$batchQuery = "SELECT batchID FROM crop_batch ORDER BY batchID ASC";
+$batchResult = mysqli_query($conn, $batchQuery);
+$batchOptions = [];
+
+if (mysqli_num_rows($batchResult) > 0) {
+    while ($batch = mysqli_fetch_assoc($batchResult)) {
+        $batchOptions[] = $batch['batchID'];
+    }
+}
+$batchOptionsJSON = json_encode($batchOptions);
 ?>
 
 <!DOCTYPE html>
@@ -89,6 +101,9 @@ $result = mysqli_query($conn, $sql);
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- jQuery UI CSS for autocomplete -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -279,6 +294,48 @@ $result = mysqli_query($conn, $sql);
             background-color: orange;
             color: white;
         }
+        
+        /* UI improvements for table */
+        #transportationTable {
+            border-collapse: collapse;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        
+        #transportationTable thead th {
+            background: linear-gradient(to bottom, #6c757d, #5a6268);
+            color: white;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        #transportationTable tbody tr:hover {
+            background-color: rgba(34, 149, 151, 0.1);
+        }
+        
+        .actions-column {
+            width: 120px;
+            text-align: center;
+        }
+        
+        /* Autocomplete styling */
+        .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 9999 !important;
+        }
+        
+        .ui-menu-item {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .ui-state-active, 
+        .ui-widget-content .ui-state-active {
+            background-color: #5CB85C !important;
+            border-color: #5CB85C !important;
+            color: white !important;
+        }
     </style>
 </head>
 
@@ -331,7 +388,7 @@ $result = mysqli_query($conn, $sql);
                 <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
                 <a href="qualityReport.php" class="nav-item nav-link px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.php" class="nav-item nav-link px-3">Quality Trend</a>
-                <a href="transportationTracking.php" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="transportationTracking.php" class="nav-item nav-link active px-3">Transportation Tracking</a>
                 <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
                 <a href="packagingTrackingSystem.php" class="nav-item nav-link px-3">Packaging Tracking</a>
                 
@@ -573,6 +630,7 @@ $result = mysqli_query($conn, $sql);
                         <th>Vehicle Type</th>
                         <th>Batch ID</th>
                         <th>Location</th>
+                        <th>Last Updated</th>
                         <th class="actions-column">Actions</th>
                     </tr>
                 </thead>
@@ -580,142 +638,109 @@ $result = mysqli_query($conn, $sql);
                     <?php
                     if (mysqli_num_rows($result) > 0) {
                         while ($row = mysqli_fetch_assoc($result)) {
-                            echo "<tr>";
-                            echo "<td>" . $row['vehicle_id'] . "</td>";
-                            echo "<td>" . $row['vehicle_type'] . "</td>";
-                            echo "<td>" . $row['batch_id'] . "</td>";
-                            echo "<td>" . $row['location'] . "</td>";
-                            echo "<td class='actions-column'>
-                                <button class='btn btn-warning btn-sm' onclick='editVehicle(\"" . $row['vehicle_id'] . "\", \"" . $row['vehicle_type'] . "\", \"" . $row['batch_id'] . "\", \"" . $row['location'] . "\")'>
-                                    <i class='fas fa-edit'></i>
-                                </button>
-                                <button class='btn btn-danger btn-sm' onclick='confirmDelete(\"" . $row['vehicle_id'] . "\")'>
-                                    <i class='fas fa-trash'></i>
-                                </button>
-                            </td>";
-                            echo "</tr>";
+                            $updated = date('M d, Y H:i', strtotime($row['updated_at']));
+                    ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['vehicle_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['vehicle_type']); ?></td>
+                                <td><?php echo htmlspecialchars($row['batchID']); ?></td>
+                                <td><?php echo htmlspecialchars($row['location']); ?></td>
+                                <td><?php echo $updated; ?></td>
+                                <td>
+                                    <button class='btn btn-warning btn-sm' onclick='editVehicle(
+                                        "<?php echo htmlspecialchars($row['vehicle_id']); ?>",
+                                        "<?php echo htmlspecialchars($row['vehicle_type']); ?>",
+                                        "<?php echo htmlspecialchars($row['batchID']); ?>",
+                                        "<?php echo htmlspecialchars($row['location']); ?>"
+                                    )'>
+                                        <i class='fas fa-edit'></i>
+                                    </button>
+                                    <button class='btn btn-danger btn-sm' onclick='confirmDelete("<?php echo htmlspecialchars($row['vehicle_id']); ?>")'>
+                                        <i class='fas fa-trash'></i>
+                                    </button>
+                                </td>
+                            </tr>
+                    <?php
                         }
                     } else {
-                        echo "<tr><td colspan='5' class='text-center'>No vehicles found</td></tr>";
+                        echo "<tr><td colspan='6' class='text-center'>No vehicles found</td></tr>";
                     }
                     ?>
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <!-- Add Vehicle Modal -->
-    <div class="modal fade" id="addVehicleModal" tabindex="-1" aria-labelledby="addVehicleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="addVehicleModalLabel">Add New Vehicle</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Add Vehicle Modal -->
+        <div class="modal fade" id="addVehicleModal" tabindex="-1" aria-labelledby="addVehicleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="addVehicleModalLabel">Add New Vehicle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="" id="addVehicleForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="vehicleID" class="form-label">Vehicle ID</label>
+                                <input type="text" class="form-control" id="vehicleID" name="vehicleID" placeholder="e.g. TRK-1001" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="vehicleType" class="form-label">Vehicle Type</label>
+                                <select class="form-control" id="vehicleType" name="vehicleType" required>
+                                    <option value="">Select Vehicle Type</option>
+                                    <option value="Truck">Truck</option>
+                                    <option value="Van">Van</option>
+                                    <option value="Pickup">Pickup</option>
+                                    <option value="Mini Truck">Mini Truck</option>
+                                    <option value="Refrigerated Van">Refrigerated Van</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="batchID" class="form-label">Batch ID</label>
+                                <input type="text" class="form-control" id="batchID" name="batchID" placeholder="e.g. B0001" required>
+                                <small class="text-muted">Start typing to see available batch IDs</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" placeholder="e.g. Dhaka Distribution Center" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" name="add_vehicle" class="btn btn-primary">Add Vehicle</button>
+                        </div>
+                    </form>
                 </div>
-                <form method="POST" action="" id="addVehicleForm">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="vehicleID" class="form-label">Vehicle ID</label>
-                            <input type="text" class="form-control" id="vehicleID" name="vehicleID" placeholder="e.g. TRK-1001" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="vehicleType" class="form-label">Vehicle Type</label>
-                            <select class="form-control" id="vehicleType" name="vehicleType" required>
-                                <option value="">Select Vehicle Type</option>
-                                <option value="Truck">Truck</option>
-                                <option value="Van">Van</option>
-                                <option value="Pickup">Pickup</option>
-                                <option value="Mini Truck">Mini Truck</option>
-                                <option value="Refrigerated Van">Refrigerated Van</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="batchID" class="form-label">Batch ID</label>
-                            <input type="text" class="form-control" id="batchID" name="batchID" placeholder="e.g. BCH-5432" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="location" name="location" placeholder="e.g. Dhaka Distribution Center" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="add_vehicle" class="btn btn-primary">Add Vehicle</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Vehicle Modal -->
-    <div class="modal fade" id="editVehicleModal" tabindex="-1" aria-labelledby="editVehicleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title" id="editVehicleModalLabel">Edit Vehicle</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="" id="editVehicleForm">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="editVehicleID" class="form-label">Vehicle ID</label>
-                            <input type="text" class="form-control" id="editVehicleID" name="editVehicleID" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editVehicleType" class="form-label">Vehicle Type</label>
-                            <select class="form-control" id="editVehicleType" name="editVehicleType" required>
-                                <option value="Truck">Truck</option>
-                                <option value="Van">Van</option>
-                                <option value="Pickup">Pickup</option>
-                                <option value="Mini Truck">Mini Truck</option>
-                                <option value="Refrigerated Van">Refrigerated Van</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editBatchID" class="form-label">Batch ID</label>
-                            <input type="text" class="form-control" id="editBatchID" name="editBatchID" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editLocation" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="editLocation" name="editLocation" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_vehicle" class="btn btn-warning">Update Vehicle</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="" id="deleteVehicleForm">
+        <!-- Delete Vehicle Modal -->
+        <div class="modal fade" id="deleteVehicleModal" tabindex="-1" aria-labelledby="deleteVehicleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteVehicleModalLabel">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to delete vehicle <strong id="deleteVehicleIDText"></strong>?</p>
-                        <p>This action cannot be undone.</p>
+                        <p>Are you sure you want to delete this vehicle? This action cannot be undone.</p>
+                    </div>
+                    <form method="POST" action="" id="deleteVehicleForm">
                         <input type="hidden" id="deleteVehicleID" name="deleteVehicleID">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="delete_vehicle" class="btn btn-danger">Delete</button>
-                    </div>
-                </form>
-                </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" name="delete_vehicle" class="btn btn-danger">Delete Vehicle</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Delete Confirmation Modal End -->
+    <!-- Transportation Tracking Table End -->
 
-        <!-- Footer Start -->
-        <div class="container-fluid bg-footer bg-primary text-white mt-5">
+    <!-- Footer Start -->
+    <div class="container-fluid bg-footer bg-primary text-white mt-5">
         <!-- Footer content remains the same as in the original template -->
     </div>
     <div class="container-fluid bg-dark text-white py-4">
@@ -724,178 +749,156 @@ $result = mysqli_query($conn, $sql);
         </div>
     </div>
     <!-- Footer End -->
-     
+
     <!-- Back to Top -->
     <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/counterup/counterup.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    
-    <!-- Leaflet JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
-    
-    <!-- Custom JavaScript -->
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
     <script>
-        // Function to search shipment
-        function searchShipment() {
-            const trackingNumber = document.getElementById('trackingNumber').value;
-            alert('Searching for shipment: ' + trackingNumber);
-            // Here you would typically make an AJAX call to your backend to get shipment details
+        // Batch ID Autocomplete
+        var availableBatches = <?php echo $batchOptionsJSON; ?>;
+        
+        $(function() {
+            $("#batchID, #editBatchID").autocomplete({
+                source: availableBatches,
+                minLength: 1
+            });
+        });
+        
+        // Table Search Function
+        $(document).ready(function() {
+            $("#transportTableSearch").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#transportationTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+            
+            // Initialize the progress bar
+            updateProgress();
+            
+            // Initialize map
+            initMap();
+        });
+        
+        // Edit Vehicle Function
+        function editVehicle(vehicleID, vehicleType, batchID, location) {
+            $('#editVehicleID').val(vehicleID);
+            $('#editVehicleType').val(vehicleType);
+            $('#editBatchID').val(batchID);
+            $('#editLocation').val(location);
+            $('#editVehicleModal').modal('show');
         }
         
-        // Function to select vehicle
-        function selectVehicle(vehicleId) {
-            // Remove active class from all vehicle items
+        // Confirm Delete Function
+        function confirmDelete(vehicleID) {
+            $('#deleteVehicleID').val(vehicleID);
+            $('#deleteVehicleModal').modal('show');
+        }
+        
+        // Update Progress Bar
+        function updateProgress() {
+            // Calculate progress percentage based on current status (2 out of 5 steps completed)
+            const progressPercentage = 50;
+            document.getElementById('statusProgress').style.width = progressPercentage + '%';
+        }
+        
+        // Search Shipment Function
+        function searchShipment() {
+            const trackingNumber = document.getElementById('trackingNumber').value;
+            // In a real application, this would make an AJAX call to get shipment data
+            alert("Searching for shipment: " + trackingNumber);
+        }
+        
+        // Select Vehicle Function
+        function selectVehicle(id) {
+            // Remove active class from all vehicles
             document.querySelectorAll('.vehicle-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Add active class to the selected vehicle
-            document.querySelectorAll('.vehicle-item')[vehicleId - 1].classList.add('active');
+            // Add active class to selected vehicle
+            document.querySelectorAll('.vehicle-item')[id-1].classList.add('active');
             
-            // Update map marker and information based on selected vehicle
-            updateMapForVehicle(vehicleId);
+            // Update map markers based on selected vehicle
+            updateMap(id);
         }
         
-        // Function to update map for selected vehicle
-        function updateMapForVehicle(vehicleId) {
+        // Initialize Map
+        function initMap() {
+            // Create map centered on Bangladesh
+            window.map = L.map('map').setView([23.8103, 90.4125], 7);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(window.map);
+            
+            // Set initial vehicle marker
+            updateMap(1);
+        }
+        
+        // Update Map based on selected vehicle
+        function updateMap(vehicleID) {
             // Clear existing markers
-            if (markers) {
-                markers.forEach(marker => map.removeLayer(marker));
+            if (window.currentMarker) {
+                window.map.removeLayer(window.currentMarker);
             }
             
-            // Add new marker based on vehicle
-            let position;
-            let popupContent;
+            // Example coordinates for different vehicles
+            const vehicleCoordinates = [
+                [23.7985, 90.3185], // Dhaka
+                [24.0950, 90.0097], // Tangail
+                [22.3567, 91.7832]  // Chittagong
+            ];
             
-            switch(vehicleId) {
-                case 1:
-                    position = [24.2513, 89.9167]; // Tangail
-                    popupContent = "<b>Truck #T-1234</b><br>Status: On Route<br>Driver: Mohammad Rahman";
-                    document.getElementById('currentLocation').textContent = "Tangail District";
-                    document.getElementById('distanceTraveled').textContent = "78 km";
-                    document.getElementById('estimatedArrival').textContent = "April 17, 2025 - 14:30";
-                    document.getElementById('remainingDistance').textContent = "142 km";
-                    break;
-                case 2:
-                    position = [23.7104, 90.4074]; // Dhaka
-                    popupContent = "<b>Truck #T-5678</b><br>Status: Loading<br>Driver: Kamal Hossain";
-                    document.getElementById('currentLocation').textContent = "Dhaka Central Depot";
-                    document.getElementById('distanceTraveled').textContent = "0 km";
-                    document.getElementById('estimatedArrival').textContent = "April 18, 2025 - 10:15";
-                    document.getElementById('remainingDistance').textContent = "220 km";
-                    break;
-                case 3:
-                    position = [22.8456, 91.4156]; // Near Chittagong
-                    popupContent = "<b>Van #V-7890</b><br>Status: Returning<br>Driver: Abdul Karim";
-                    document.getElementById('currentLocation').textContent = "Feni District";
-                    document.getElementById('distanceTraveled').textContent = "185 km";
-                    document.getElementById('estimatedArrival').textContent = "Completed";
-                    document.getElementById('remainingDistance').textContent = "35 km (to Depot)";
-                    break;
-                default:
-                    position = [24.2513, 89.9167]; // Default
-                    popupContent = "Unknown Vehicle";
-            }
+            const vehicleInfo = [
+                "Truck #T-1234 (Rice) - Dhaka",
+                "Truck #T-5678 (Tomatoes) - Tangail",
+                "Van #V-7890 (Carrots) - Chittagong"
+            ];
             
-            // Add marker and adjust map view
-            let newMarker = L.marker(position).addTo(map)
-                .bindPopup(popupContent)
+            const index = vehicleID - 1;
+            
+            // Create custom icon
+            const vehicleIcon = L.divIcon({
+                html: '<i class="fas fa-truck fa-2x" style="color: #5CB85C;"></i>',
+                iconSize: [20, 20],
+                className: 'vehicle-marker'
+            });
+            
+            // Add marker for the selected vehicle
+            window.currentMarker = L.marker(vehicleCoordinates[index], {icon: vehicleIcon})
+                .addTo(window.map)
+                .bindPopup(vehicleInfo[index])
                 .openPopup();
-                
-            markers.push(newMarker);
-            map.setView(position, 9);
+            
+            // Update location details
+            const locations = ["Dhaka City", "Tangail District", "Chittagong City"];
+            const distances = ["0 km", "78 km", "264 km"];
+            const remaining = ["220 km", "142 km", "0 km"];
+            const arrivals = ["April 17, 14:30", "April 17, 14:30", "Already arrived"];
+            
+            document.getElementById('currentLocation').textContent = locations[index];
+            document.getElementById('distanceTraveled').textContent = distances[index];
+            document.getElementById('remainingDistance').textContent = remaining[index];
+            document.getElementById('estimatedArrival').textContent = arrivals[index];
+            
+            // Center map on selected vehicle
+            window.map.setView(vehicleCoordinates[index], 8);
         }
-        
-        // Initialize map
-        let map = L.map('map').setView([24.2513, 89.9167], 8);
-        let markers = [];
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Define the route
-        const routePoints = [
-            [23.7104, 90.4074], // Dhaka
-            [24.0083, 90.1111], // Manikganj
-            [24.2513, 89.9167], // Tangail (current location)
-            [24.7471, 90.4203], // Mymensingh
-            [22.3569, 91.7832]  // Chittagong
-        ];
-        
-        // Create polyline for the route
-        let route = L.polyline(routePoints, {color: 'blue', weight: 3}).addTo(map);
-        
-        // Add markers for start and end points
-        L.marker([23.7104, 90.4074]).addTo(map)
-            .bindPopup("<b>Origin</b><br>Dhaka Farm")
-            .openPopup();
-            
-        L.marker([22.3569, 91.7832]).addTo(map)
-            .bindPopup("<b>Destination</b><br>Chittagong Market");
-            
-        // Add current location marker
-        let currentMarker = L.marker([24.2513, 89.9167]).addTo(map)
-            .bindPopup("<b>Truck #T-1234</b><br>Status: On Route<br>Driver: Mohammad Rahman")
-            .openPopup();
-            
-        markers.push(currentMarker);
-        
-        // Set the progress bar
-        document.getElementById('statusProgress').style.width = '50%';
-        
-        // Function to edit vehicle
-        function editVehicle(vehicleID, vehicleType, batchID, location) {
-            document.getElementById('editVehicleID').value = vehicleID;
-            document.getElementById('editVehicleType').value = vehicleType;
-            document.getElementById('editBatchID').value = batchID;
-            document.getElementById('editLocation').value = location;
-            
-            // Show the edit modal
-            var editModal = new bootstrap.Modal(document.getElementById('editVehicleModal'));
-            editModal.show();
-        }
-        
-        // Function to confirm delete
-        function confirmDelete(vehicleID) {
-            document.getElementById('deleteVehicleID').value = vehicleID;
-            document.getElementById('deleteVehicleIDText').textContent = vehicleID;
-            
-            // Show the confirm delete modal
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-            deleteModal.show();
-        }
-        
-        // Search function for transportation table
-        document.getElementById('transportTableSearch').addEventListener('keyup', function() {
-            var input = this.value.toLowerCase();
-            var table = document.getElementById('transportationTable');
-            var rows = table.getElementsByTagName('tr');
-            
-            for (var i = 1; i < rows.length; i++) {
-                var showRow = false;
-                var cells = rows[i].getElementsByTagName('td');
-                
-                for (var j = 0; j < cells.length - 1; j++) {
-                    if (cells[j].textContent.toLowerCase().indexOf(input) > -1) {
-                        showRow = true;
-                        break;
-                    }
-                }
-                
-                rows[i].style.display = showRow ? '' : 'none';
-            }
-        });
     </script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
 </body>
-
 </html>
