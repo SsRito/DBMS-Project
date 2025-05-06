@@ -113,7 +113,7 @@ INSERT INTO `delivery` (`deliveryID`, `location`, `dateTime`, `batchID`, `vendor
 --
 
 CREATE TABLE `farmer` (
-  `farmerID` varchar(5) NOT NULL,
+  `farmerID` char(5) NOT NULL,
   `farmerName` varchar(50) NOT NULL,
   `contactInfo` varchar(11) DEFAULT NULL,
   `f_district` varchar(50) DEFAULT NULL,
@@ -145,7 +145,7 @@ INSERT INTO `farmer` (`farmerID`, `farmerName`, `contactInfo`, `f_district`, `f_
 --
 
 CREATE TABLE `farmer_crop` (
-  `farmerCropID` varchar(5) NOT NULL,
+  `farmerCropID` char(5) NOT NULL,
   `quantity` decimal(10,2) NOT NULL,
   `season` varchar(50) DEFAULT NULL,
   `cropID` varchar(15) NOT NULL,
@@ -179,7 +179,7 @@ INSERT INTO `farmer_crop` (`farmerCropID`, `quantity`, `season`, `cropID`, `farm
 CREATE TABLE `farmer_crop_type` (
   `cropTypeID` varchar(30) NOT NULL,
   `cropType` varchar(50) NOT NULL,
-  `farmerCropID` varchar(5) NOT NULL
+  `farmerCropID` char(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -288,7 +288,7 @@ INSERT INTO `grading_details` (`past_problem`, `present_situation`, `changes`) V
 --
 
 CREATE TABLE `inspector_records` (
-  `record_id` varchar(10) NOT NULL,
+  `record_id` char(6) NOT NULL,
   `inspector_name` varchar(80) DEFAULT NULL,
   `batchID` varchar(50) DEFAULT NULL,
   `standardGradeID` varchar(50) DEFAULT NULL,
@@ -311,7 +311,7 @@ INSERT INTO `inspector_records` (`record_id`, `inspector_name`, `batchID`, `stan
 --
 
 CREATE TABLE `packaging` (
-  `packageID` varchar(10) NOT NULL,
+  `packageID` char(5) NOT NULL,
   `packagingDescription` varchar(100) DEFAULT NULL,
   `materialType` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -360,7 +360,7 @@ INSERT INTO `packaging_tracking` (`id`, `product_name`, `batch_number`, `pack_da
 --
 
 CREATE TABLE `retailer` (
-  `rvendorLicense` varchar(10) NOT NULL,
+  `rvendorLicense` char(6) NOT NULL,
   `v_name` varchar(50) NOT NULL,
   `v_contactInfo` varchar(11) DEFAULT NULL,
   `v_location` varchar(50) DEFAULT NULL
@@ -384,7 +384,7 @@ INSERT INTO `retailer` (`rvendorLicense`, `v_name`, `v_contactInfo`, `v_location
 --
 
 CREATE TABLE `sensor` (
-  `sensorID` varchar(10) NOT NULL,
+  `sensorID` char(5) NOT NULL,
   `sensorType` varchar(50) NOT NULL,
   `installationDate` date DEFAULT NULL,
   `expiaryPeriod` int(11) DEFAULT NULL,
@@ -413,7 +413,7 @@ INSERT INTO `sensor` (`sensorID`, `sensorType`, `installationDate`, `expiaryPeri
 --
 
 CREATE TABLE `sensor_data` (
-  `sensorDataID` varchar(10) NOT NULL,
+  `sensorDataID` char(6) NOT NULL,
   `date` datetime NOT NULL,
   `reading` varchar(255) NOT NULL,
   `sensorID` varchar(10) NOT NULL
@@ -444,8 +444,8 @@ INSERT INTO `sensor_data` (`sensorDataID`, `date`, `reading`, `sensorID`) VALUES
 --
 
 CREATE TABLE `transport` (
-  `vehicleID` varchar(10) NOT NULL,
-  `packageID` varchar(10) NOT NULL,
+  `vehicleID`  varchar(50) NOT NULL,
+  `packageID` char(5),
   `destination` varchar(100) NOT NULL,
   `departureDate` datetime DEFAULT NULL,
   `arrivalDate` datetime DEFAULT NULL,
@@ -494,7 +494,7 @@ INSERT INTO `transportation_vehicles` (`id`, `vehicle_id`, `vehicle_type`, `batc
 --
 
 CREATE TABLE `user` (
-  `userID` varchar(10) NOT NULL,
+  `userID` char(6) NOT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
@@ -518,7 +518,7 @@ INSERT INTO `user` (`userID`, `name`, `email`, `password`, `phone`, `dob`, `c_pa
 --
 
 CREATE TABLE `vendor` (
-  `vendorLicense` varchar(12) NOT NULL,
+  `vendorLicense` char(6) NOT NULL,
   `v_name` varchar(50) NOT NULL,
   `v_contactInfo` varchar(11) DEFAULT NULL,
   `v_location` varchar(50) DEFAULT NULL
