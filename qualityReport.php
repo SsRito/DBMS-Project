@@ -309,7 +309,7 @@ $result = mysqli_stmt_get_result($stmt);
             </div>
             <div class="col-lg-6">
                 <div class="d-flex align-items-center justify-content-center">
-                    <a href="index.html" class="navbar-brand ms-lg-5">
+                    <a href="home.php" class="navbar-brand ms-lg-5">
                         <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
                     </a>
                 </div>
@@ -321,7 +321,7 @@ $result = mysqli_stmt_get_result($stmt);
                         <i class="fas fa-user"></i>
                     </a>
                     <!-- Logout Icon -->
-                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.php" title="Logout">
+                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="logout.php" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </a>
                 </div>
@@ -332,7 +332,7 @@ $result = mysqli_stmt_get_result($stmt);
 
     <!-- Navbar Start -->
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
-        <a href="index.html" class="navbar-brand d-flex d-lg-none">
+        <a href="home.php" class="navbar-brand d-flex d-lg-none">
             <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -341,7 +341,7 @@ $result = mysqli_stmt_get_result($stmt);
         
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
-                <a href="index.html" class="nav-item nav-link px-3">Home</a>
+                <a href="home.php" class="nav-item nav-link px-3">Home</a>
                 <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
                 <a href="qualityReport.php" class="nav-item nav-link active px-3">Inspector Report</a>
                 <a href="qualityTrendAnalysis.php" class="nav-item nav-link px-3">Quality Trend</a>

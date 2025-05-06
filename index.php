@@ -1,3 +1,16 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "agriculturesupplychain";
+
+$conn = mysqli_connect($servername, $username, $password, $database);
+
+if (!$conn) {
+    die("Sorry, failed to connect with database" . mysqli_connect_error());
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -31,41 +44,26 @@
 
     <!-- Additional CSS for animations and features -->
     <style>
+        .login-btn {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: all 0.3s ease;
+            padding: 8px 24px;
+            font-weight: 600;
+            border-radius: 30px;
+        }
 
-.logout-btn {
-    background-color: #28a745
-    border-color #28a745;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-
-    .logout-btn:hover {
-        background-color: #dc3545 !important; /* Red on hover */
-        border-color: #dc3545 !important;
-    }
+        .login-btn:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
         /* Hero section animation */
         .hero-slide {
             transition: all 0.8s ease;
         }
-
-        .navbar-nav .nav-link, 
-    .navbar-nav .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-width: 150px;
-        text-align: center;
-    }
-
-    .navbar-nav .dropdown-menu .dropdown-item {
-        text-align: center;
-    }
-
-    .dropdown-menu .dropdown-item:hover {
-        background-color: orange;
-        color: white;
-    }
-
         
         .feature-box {
             border-radius: 10px;
@@ -186,6 +184,55 @@
         .tracker-step:last-child:after {
             display: none;
         }
+
+        /* Modal styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            border-bottom: none;
+            padding: 2rem 2rem 0;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+        }
+        
+        .form-control {
+            border-radius: 30px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-login {
+            border-radius: 30px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            border-color: #28a745;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .btn-login:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        /* Feature cards for button replacements */
+        .feature-access-card {
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 
@@ -201,58 +248,22 @@
             </div>
             <div class="col-lg-6">
                 <div class="d-flex align-items-center justify-content-center">
-                    <a href="index.html" class="navbar-brand ms-lg-5">
+                    <a href="index.php" class="navbar-brand ms-lg-5">
                         <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
                     </a>
                 </div>
             </div>
             <div class="col-lg-3">
                 <div class="d-flex align-items-center justify-content-end">
-                    <!-- Profile Icon -->
-                    <a class="btn btn-primary btn-square rounded-circle me-2" href="profile.php" title="Profile">
-                        <i class="fas fa-user"></i>
-                    </a>
-                    <!-- Logout Icon -->
-                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="login.php" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <!-- Login Button -->
+                    <a class="btn btn-primary login-btn" href="login.php">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
                     </a>
                 </div>
             </div> 
         </div>
     </div>
     <!-- Topbar End -->
-
-    <!-- Navbar Start -->
-    <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
-        <a href="index.html" class="navbar-brand d-flex d-lg-none">
-            <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
-                <a href="index.html" class="nav-item nav-link px-3">Home</a>
-                <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
-                <a href="qualityReport.php" class="nav-item nav-link px-3">Inspector Report</a>
-                <a href="qualityTrendAnalysis.php" class="nav-item nav-link px-3">Quality Trend</a>
-                <a href="transportationTracking.php" class="nav-item nav-link px-3">Transportation Tracking</a>
-                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
-                <a href="packagingTrackingSystem.php" class="nav-item nav-link px-3">Packaging Tracking</a>
-                
-                <div class="nav-item dropdown px-3">
-                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
-                    <div class="dropdown-menu text-center">
-                        <a href="service.html" class="dropdown-item">Service</a>
-                        <a href="contact.html" class="dropdown-item">Contact Us</a>
-                        <a href="about.html" class="dropdown-item">About</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-    <!-- Navbar End -->
 
     <!-- Hero Start -->
     <div class="container-fluid p-0">
@@ -265,7 +276,7 @@
                                 <div class="col-lg-8 text-white text-center mt-5">                        
                                     <h1 class="display-2 mb-3 animate__animated animate__fadeInDown">Revolutionizing Agricultural Product Management</h1>
                                     <p class="fs-5 mb-5 animate__animated animate__fadeInUp">A comprehensive system for grading, packaging, and transport management</p>
-                                    <a href="#features" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">Explore Features</a>
+                                    <a href="login.php" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">Get Started</a>
                                 </div>
                             </div>
                         </div>
@@ -278,7 +289,7 @@
                                 <div class="col-lg-8 text-white text-center mt-5"> 
                                     <h1 class="display-2 mb-3 animate__animated animate__fadeInDown">Standardized Quality Assessment</h1>
                                     <p class="fs-5 mb-5 animate__animated animate__fadeInUp">Ensuring consistent high-quality produce from farm to market</p>
-                                    <a href="gradingCriteria.php" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">View Grading Standards</a>
+                                    <a href="login.php" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">Learn More</a>
                                 </div>
                             </div>
                         </div>
@@ -291,7 +302,7 @@
                                 <div class="col-lg-8 text-white text-center mt-5"> 
                                     <h1 class="display-2 mb-3 animate__animated animate__fadeInDown">Real-time Tracking System</h1>
                                     <p class="fs-5 mb-5 animate__animated animate__fadeInUp">Monitor your products at every stage of the supply chain</p>
-                                    <a href="trackingOfGradedProducts.php" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">Track Your Products</a>
+                                    <a href="login.php" class="btn btn-primary py-3 px-5 animate__animated animate__fadeInUp">Start Tracking</a>
                                 </div>
                             </div>
                         </div>
@@ -319,7 +330,7 @@
                         <div class="text-white">
                             <h1 class="mb-4">Our Comprehensive System</h1>
                             <p class="mb-4">Banglar Krishi provides an end-to-end solution for agricultural product management, ensuring quality, transparency, and efficiency across the entire supply chain.</p>
-                            <a href="about.html" class="btn btn-outline-light py-md-3 px-md-5">Learn More</a>
+                            <a href="login.php" class="btn btn-outline-light py-md-3 px-md-5">Learn More</a>
                         </div>
                     </div>
                 </div>
@@ -328,7 +339,7 @@
                         <div>
                             <h1 class="mb-4">Quality Assessment & Grading</h1>
                             <p class="mb-4">Our standardized quality assessment system ensures consistent grading of agricultural products based on well-defined criteria, benefiting both farmers and consumers.</p>
-                            <a href="gradingCriteria.php" class="btn btn-primary py-md-3 px-md-5">Explore Grading Criteria</a>
+                            <a href="login.php" class="btn btn-primary py-md-3 px-md-5">Explore Grading Criteria</a>
                         </div>
                     </div>
                 </div>
@@ -341,7 +352,7 @@
                         </div>
                         <h4>Grading Criteria</h4>
                         <p>Standardized assessment criteria for various agricultural products ensuring consistent quality.</p>
-                        <a href="gradingCriteria.php" class="btn btn-sm btn-primary mt-2">Learn More</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">Learn More</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -351,7 +362,7 @@
                         </div>
                         <h4>Quality Reports</h4>
                         <p>Detailed inspector reports for comprehensive quality assessment and verification.</p>
-                        <a href="qualityReport.php" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">View Reports</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -361,7 +372,7 @@
                         </div>
                         <h4>Quality Trends</h4>
                         <p>Advanced analytics to identify quality trends and improvement opportunities.</p>
-                        <a href="qualityTrendAnalysis.php" class="btn btn-sm btn-primary mt-2">See Analysis</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">See Analysis</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -371,7 +382,7 @@
                         </div>
                         <h4>Transportation Tracking</h4>
                         <p>Real-time tracking of product transportation throughout the supply chain.</p>
-                        <a href="transportationTracking.php" class="btn btn-sm btn-primary mt-2">Track Transport</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">Track Transport</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -381,7 +392,7 @@
                         </div>
                         <h4>Product Tracking</h4>
                         <p>End-to-end tracking system for graded agricultural products.</p>
-                        <a href="trackingOfGradedProducts.php" class="btn btn-sm btn-primary mt-2">Track Products</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">Track Products</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -391,7 +402,7 @@
                         </div>
                         <h4>Packaging Management</h4>
                         <p>Comprehensive packaging tracking system ensuring product integrity and safety.</p>
-                        <a href="packagingTrackingSystem.php" class="btn btn-sm btn-primary mt-2">Packaging Solutions</a>
+                        <a href="login.php" class="btn btn-sm btn-primary mt-2">Packaging Solutions</a>
                     </div>
                 </div>
             </div>
@@ -449,7 +460,7 @@
                             </div>
                         </div>
                     </div>
-                    <a href="about.html" class="btn btn-primary py-3 px-5">Explore More</a>
+                    <a href="login.php" class="btn btn-primary py-3 px-5">Explore More</a>
                 </div>
             </div>
         </div>
@@ -601,6 +612,22 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="bg-white p-4 rounded shadow-sm">
+                        <h4 class="mb-4">Quality Improvement Over Time</h4>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-4">
+                    <div class="bg-white p-4 rounded shadow-sm">
+                        <h4 class="mb-4">Product Distribution by Grade</h4>
+                        <div class="chart-container">
+                            <canvas id="gradeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-4">
+                    <div class="bg-white p-4 rounded shadow-sm">
                         <h4 class="mb-4">Seasonal Quality Variations</h4>
                         <div class="chart-container">
                             <canvas id="seasonalChart"></canvas>
@@ -612,310 +639,311 @@
     </div>
     <!-- Data Visualization End -->
 
-    <!-- Quick Access section completion -->
-    <h4>Check Quality Standards</h4>
-    <div class="d-grid mt-3">
-        <a href="gradingCriteria.php" class="btn btn-primary">View Standards</a>
-    </div>
-</div>
-</div>
-<div class="col-md-6 col-lg-4">
-<div class="bg-white p-4 rounded shadow-sm text-center">
-    <div class="bg-primary text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-        <i class="fas fa-truck fa-2x"></i>
-    </div>
-    <h4>Transportation Status</h4>
-    <div class="d-grid mt-3">
-        <a href="transportationTracking.php" class="btn btn-primary">Check Status</a>
-    </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Quick Access End -->
-
-<!-- Testimonials Start -->
-<div class="container-fluid py-5">
-<div class="container">
-<div class="text-center mb-5">
-<h1 class="text-primary">Testimonials</h1>
-<p class="text-muted">What our users say about our agricultural product management system</p>
-</div>
-<div class="row">
-<div class="col-12">
-<div class="owl-carousel testimonial-carousel">
-    <div class="testimonial-card bg-light p-4">
-        <div class="d-flex align-items-center mb-4">
-            <img class="flex-shrink-0 rounded-circle" src="img/testimonial-1.jpg" alt="" style="width: 70px; height: 70px;">
-            <div class="ms-4">
-                <h5 class="mb-1">Rahim Khan</h5>
-                <p class="mb-0">Rice Farmer, Dinajpur</p>
+    <!-- Testimonial Start -->
+    <div class="container-fluid py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="text-primary">What Our Users Say</h1>
+                <p class="text-muted">Testimonials from farmers, inspectors, and distributors</p>
+            </div>
+            <div class="owl-carousel testimonial-carousel">
+                <div class="testimonial-card bg-white p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-quote-left fa-3x text-primary"></i>
+                    </div>
+                    <p class="fs-5 mb-4">The grading system has helped me get better prices for my premium rice. Buyers now trust the quality of my products.</p>
+                    <div class="d-flex align-items-center">
+                        <img class="img-fluid rounded-circle flex-shrink-0" src="img/testimonial-1.jpg" style="width: 60px; height: 60px;" alt="Farmer">
+                        <div class="ps-3">
+                            <h5 class="mb-1">Rahim Mia</h5>
+                            <small>Farmer, Mymensingh</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card bg-white p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-quote-left fa-3x text-primary"></i>
+                    </div>
+                    <p class="fs-5 mb-4">The tracking system has drastically reduced losses during transportation. We can now monitor every shipment in real-time.</p>
+                    <div class="d-flex align-items-center">
+                        <img class="img-fluid rounded-circle flex-shrink-0" src="img/testimonial-2.jpg" style="width: 60px; height: 60px;" alt="Distributor">
+                        <div class="ps-3">
+                            <h5 class="mb-1">Asif Ahmed</h5>
+                            <small>Distributor, Dhaka</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card bg-white p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-quote-left fa-3x text-primary"></i>
+                    </div>
+                    <p class="fs-5 mb-4">The standardized assessment tools make my job as an inspector more efficient and objective. The digital reporting system is excellent.</p>
+                    <div class="d-flex align-items-center">
+                        <img class="img-fluid rounded-circle flex-shrink-0" src="img/testimonial-3.jpg" style="width: 60px; height: 60px;" alt="Inspector">
+                        <div class="ps-3">
+                            <h5 class="mb-1">Nadia Islam</h5>
+                            <small>Quality Inspector, Khulna</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <p class="mb-0">The grading system has significantly improved the market value of my rice. Now I know exactly what quality standards to aim for to get the best price.</p>
     </div>
-    <div class="testimonial-card bg-light p-4">
-        <div class="d-flex align-items-center mb-4">
-            <img class="flex-shrink-0 rounded-circle" src="img/testimonial-2.jpg" alt="" style="width: 70px; height: 70px;">
-            <div class="ms-4">
-                <h5 class="mb-1">Fatima Begum</h5>
-                <p class="mb-0">Vegetable Producer, Rajshahi</p>
+    <!-- Testimonial End -->
+
+    <!-- Call to Action Start -->
+    <div class="container-fluid py-5">
+        <div class="container">
+            <div class="cta-section text-white">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="text-white mb-4">Join বাংলার কৃষি Today</h1>
+                        <p class="fs-5 mb-0">Experience the benefits of standardized agricultural product management, real-time tracking, and quality assessment.</p>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <a href="signup.php" class="btn btn-light py-3 px-5 mt-3 mt-lg-0">
+                            <i class="fas fa-sign-in-alt me-2"></i>Register Now
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-        <p class="mb-0">The transportation tracking system ensures my vegetables reach markets in the freshest condition. This has reduced spoilage by over 30%.</p>
     </div>
-    <div class="testimonial-card bg-light p-4">
-        <div class="d-flex align-items-center mb-4">
-            <img class="flex-shrink-0 rounded-circle" src="img/testimonial-3.jpg" alt="" style="width: 70px; height: 70px;">
-            <div class="ms-4">
-                <h5 class="mb-1">Kamal Hossain</h5>
-                <p class="mb-0">Fruit Exporter, Chittagong</p>
+    <!-- Call to Action End -->
+
+    
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-primary text-white py-5">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-3 col-md-6">
+                    <h3 class="text-white mb-4">Contact Us</h3>
+                    <p class="mb-2"><i class="bi bi-geo-alt text-white me-2"></i>Bashundhara R/A, Dhaka, Bangladesh</p>
+                    <p class="mb-2"><i class="bi bi-envelope-open text-white me-2"></i>info@banglarkrishi.com</p>
+                    <p class="mb-0"><i class="bi bi-telephone text-white me-2"></i>01794017804</p>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h3 class="text-white mb-4">Follow Us</h3>
+                    <div class="d-flex">
+                        <a class="btn btn-lg btn-outline-light btn-lg-square rounded-circle me-2" href="#"><i class="fab fa-twitter fw-normal"></i></a>
+                        <a class="btn btn-lg btn-outline-light btn-lg-square rounded-circle me-2" href="#"><i class="fab fa-facebook-f fw-normal"></i></a>
+                        <a class="btn btn-lg btn-outline-light btn-lg-square rounded-circle me-2" href="#"><i class="fab fa-linkedin-in fw-normal"></i></a>
+                        <a class="btn btn-lg btn-outline-light btn-lg-square rounded-circle" href="#"><i class="fab fa-instagram fw-normal"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
-        <p class="mb-0">The quality certification has opened international markets for my mangoes. The comprehensive tracking system provides transparency that foreign buyers demand.</p>
     </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Testimonials End -->
-
-<!-- Call to Action Start -->
-<div class="container-fluid py-5">
-<div class="container">
-<div class="cta-section text-white text-center">
-<h1 class="display-4 mb-4">Ready to Transform Your Agricultural Business?</h1>
-<p class="fs-5 mb-4">Join thousands of farmers and agricultural businesses benefiting from our comprehensive product management system.</p>
-<div class="row justify-content-center">
-<div class="col-lg-4 col-md-6">
-    <a href="contact.html" class="btn btn-light py-3 px-5 w-100">Get Started</a>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Call to Action End -->
-
-<!-- Latest News Start -->
-<div class="container-fluid py-5 bg-light">
-<div class="container">
-<div class="text-center mb-5">
-<h1 class="text-primary">Latest News</h1>
-<p class="text-muted">Stay updated with the latest agricultural news and system updates</p>
-</div>
-<div class="row g-4">
-<div class="col-lg-4 col-md-6">
-<div class="bg-white rounded shadow-sm overflow-hidden">
-    <img class="img-fluid w-100" src="img/news-1.jpg" alt="">
-    <div class="p-4">
-        <div class="d-flex mb-2">
-            <small class="me-3"><i class="far fa-calendar-alt text-primary me-2"></i>01 Jan, 2023</small>
-            <small><i class="far fa-user text-primary me-2"></i>Admin</small>
+    <div class="container-fluid text-white py-4" style="background: #051225;">
+        <div class="container text-center">
+            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">বাংলার কৃষি</a>. All Rights Reserved. 2023</p>
         </div>
-        <h5 class="mb-3">New Quality Standards for Export-Grade Mangoes Implemented</h5>
-        <p>Our system now includes updated grading criteria for export-quality mangoes to meet international standards...</p>
-        <a class="text-decoration-none" href="">Read More <i class="bi bi-arrow-right"></i></a>
     </div>
-</div>
-</div>
-<div class="col-lg-4 col-md-6">
-<div class="bg-white rounded shadow-sm overflow-hidden">
-    <img class="img-fluid w-100" src="img/news-2.jpg" alt="">
-    <div class="p-4">
-        <div class="d-flex mb-2">
-            <small class="me-3"><i class="far fa-calendar-alt text-primary me-2"></i>15 Feb, 2023</small>
-            <small><i class="far fa-user text-primary me-2"></i>Admin</small>
-        </div>
-        <h5 class="mb-3">Packaging Innovation for Extended Shelf Life</h5>
-        <p>New packaging technology integrated into our system increases shelf life for perishable products by up to 40%...</p>
-        <a class="text-decoration-none" href="">Read More <i class="bi bi-arrow-right"></i></a>
-    </div>
-</div>
-</div>
-<div class="col-lg-4 col-md-6">
-<div class="bg-white rounded shadow-sm overflow-hidden">
-    <img class="img-fluid w-100" src="img/news-3.jpg" alt="">
-    <div class="p-4">
-        <div class="d-flex mb-2">
-            <small class="me-3"><i class="far fa-calendar-alt text-primary me-2"></i>10 Mar, 2023</small>
-            <small><i class="far fa-user text-primary me-2"></i>Admin</small>
-        </div>
-        <h5 class="mb-3">Mobile App Launch: Access our System on the Go</h5>
-        <p>Our new mobile application provides farmers with real-time access to quality assessment and tracking services...</p>
-        <a class="text-decoration-none" href="">Read More <i class="bi bi-arrow-right"></i></a>
-    </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Latest News End -->
+    <!-- Footer End -->
 
-<!-- Footer Start -->
-<div class="container-fluid bg-primary text-white py-5">
-<div class="container py-5">
-<div class="row g-5">
-<div class="col-lg-3 col-md-6">
-<h4 class="text-white mb-4">Get In Touch</h4>
-<p><i class="fa fa-phone-alt me-3"></i>019 091 091 91</p>
-<p><i class="fa fa-envelope me-3"></i>info@banglarkrishi.com</p>
-</div>
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-<div class="col-lg-3 col-md-6">
-<h4 class="text-white mb-4">Newsletter</h4>
-<p>Subscribe to receive updates about agricultural quality standards and system improvements</p>
-<div class="position-relative">
-    <input class="form-control bg-light border-0 w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email">
-    <button type="button" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">Subscribe</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="container-fluid bg-dark text-white py-4">
-<div class="container text-center">
-<p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved.</p>
-</div>
-</div>
-<!-- Footer End -->
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/counterup/counterup.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Back to Top -->
-<a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
 
-<!-- JavaScript Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="lib/easing/easing.min.js"></script>
-<script src="lib/waypoints/waypoints.min.js"></script>
-<script src="lib/counterup/counterup.min.js"></script>
-<script src="lib/owlcarousel/owl.carousel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <!-- Custom JavaScript for Charts -->
+    <script>
+        // Quality by Region Chart
+        const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+        const qualityChart = new Chart(qualityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Dhaka', 'Rajshahi', 'Khulna', 'Chittagong', 'Sylhet', 'Barisal', 'Rangpur'],
+                datasets: [{
+                    label: 'Average Quality Score',
+                    data: [86, 92, 88, 85, 90, 82, 89],
+                    backgroundColor: [
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(92, 184, 92, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(92, 184, 92, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-<!-- Template Javascript -->
-<script src="js/main.js"></script>
+        // Quality Trend Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Quality Score 2022',
+                    data: [78, 80, 79, 81, 82, 84, 85, 86, 87, 88, 89, 90],
+                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
+                    borderColor: 'rgba(92, 184, 92, 1)',
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: 'Quality Score 2023',
+                    data: [82, 83, 85, 86, 88, 90, 91, 92, 93, 94, 95, 96],
+                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
+                    borderColor: 'rgba(66, 133, 244, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 75,
+                        max: 100
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-<!-- Chart.js Implementation -->
-<script>
-// Chart.js Configuration for Quality by Region
-const qualityCtx = document.getElementById('qualityChart').getContext('2d');
-const qualityChart = new Chart(qualityCtx, {
-type: 'bar',
-data: {
-labels: ['Dhaka', 'Rajshahi', 'Khulna', 'Chittagong', 'Sylhet', 'Barisal'],
-datasets: [{
-label: 'Grade A Products (%)',
-data: [75, 82, 68, 79, 85, 70],
-backgroundColor: '#28a745',
-borderColor: '#28a745',
-borderWidth: 1
-}, {
-label: 'Grade B Products (%)',
-data: [20, 15, 25, 18, 12, 23],
-backgroundColor: '#ffc107',
-borderColor: '#ffc107',
-borderWidth: 1
-}, {
-label: 'Grade C Products (%)',
-data: [5, 3, 7, 3, 3, 7],
-backgroundColor: '#dc3545',
-borderColor: '#dc3545',
-borderWidth: 1
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-scales: {
-y: {
-    beginAtZero: true,
-    max: 100,
-    title: {
-        display: true,
-        text: 'Percentage (%)'
-    }
-}
-}
-}
-});
+        // Grade Distribution Chart
+        const gradeCtx = document.getElementById('gradeChart').getContext('2d');
+        const gradeChart = new Chart(gradeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Premium', 'Grade A', 'Grade B', 'Grade C', 'Rejected'],
+                datasets: [{
+                    data: [25, 40, 20, 10, 5],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(92, 184, 92, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(255, 99, 132, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(92, 184, 92, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-// Chart.js Configuration for Seasonal Quality
-const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
-const seasonalChart = new Chart(seasonalCtx, {
-type: 'line',
-data: {
-labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-datasets: [{
-label: 'Rice Quality Score',
-data: [82, 80, 78, 76, 75, 72, 70, 72, 75, 78, 80, 82],
-borderColor: '#28a745',
-tension: 0.3,
-fill: false
-}, {
-label: 'Vegetable Quality Score',
-data: [75, 77, 80, 83, 85, 84, 80, 78, 79, 80, 78, 76],
-borderColor: '#17a2b8',
-tension: 0.3,
-fill: false
-}, {
-label: 'Fruit Quality Score',
-data: [68, 70, 73, 75, 85, 88, 90, 88, 86, 80, 75, 70],
-borderColor: '#ffc107',
-tension: 0.3,
-fill: false
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-scales: {
-y: {
-    beginAtZero: false,
-    min: 60,
-    max: 100,
-    title: {
-        display: true,
-        text: 'Quality Score'
-    }
-}
-}
-}
-});
+        // Seasonal Chart
+        const seasonalCtx = document.getElementById('seasonalChart').getContext('2d');
+        const seasonalChart = new Chart(seasonalCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Rice', 'Vegetables', 'Fruits', 'Spices', 'Pulses', 'Oilseeds'],
+                datasets: [{
+                    label: 'Winter Quality',
+                    data: [90, 85, 88, 92, 87, 84],
+                    backgroundColor: 'rgba(66, 133, 244, 0.2)',
+                    borderColor: 'rgba(66, 133, 244, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(66, 133, 244, 1)'
+                },
+                {
+                    label: 'Summer Quality',
+                    data: [82, 90, 93, 85, 80, 82],
+                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
+                    borderColor: 'rgba(92, 184, 92, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(92, 184, 92, 1)'
+                },
+                {
+                    label: 'Monsoon Quality',
+                    data: [75, 78, 76, 82, 85, 80],
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 159, 64, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-// Testimonial Carousel
-$(document).ready(function() {
-$(".testimonial-carousel").owlCarousel({
-autoplay: true,
-smartSpeed: 1000,
-margin: 25,
-loop: true,
-center: true,
-dots: true,
-nav: false,
-responsive: {
-0:{
-    items:1
-},
-576:{
-    items:1
-},
-768:{
-    items:2
-},
-992:{
-    items:3
-}
-}
-});
-
-// Counter Animation
-$('[data-toggle="counter-up"]').counterUp({
-delay: 10,
-time: 2000
-});
-});
-</script>
+        // Initialize owl carousel for testimonials
+        $(document).ready(function(){
+            $(".testimonial-carousel").owlCarousel({
+                autoplay: true,
+                smartSpeed: 1000,
+                margin: 24,
+                dots: true,
+                loop: true,
+                nav: false,
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    768: {
+                        items: 2
+                    },
+                    992: {
+                        items: 3
+                    }
+                }
+            });
+            
+            // Initialize counter up
+            $('.counter-up').counterUp({
+                delay: 10,
+                time: 2000
+            });
+        });
+    </script>
 </body>
 
 </html>

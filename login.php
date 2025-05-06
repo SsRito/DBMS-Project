@@ -293,7 +293,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             .then(data => {
                 if (data.status === 'success') {
                     // Redirect to home page on successful login
-                    window.location.href = "index.html";
+                    window.location.href = "home.php";
                 } else {
                     // Show error message
                     alert(data.message);
@@ -335,7 +335,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               
               // For now, just redirect to home page
               alert("Welcome, " + user.displayName + "!");
-              window.location.href = "index.html";
+              window.location.href = "home.php";
             })
             .catch((error) => {
               console.error("Google Sign-In Error:", error.message);
