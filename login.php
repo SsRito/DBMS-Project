@@ -457,6 +457,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Right Half - Login Form -->
         <div class="login-form-section">
             <div class="logo">
+                <img src="img/Logo.png" alt="Banglar Krishi Logo" class="me-3" style="height: 90px; width: auto;">
                 <h1><span>বাংলার</span> কৃষি</h1>
             </div>
             

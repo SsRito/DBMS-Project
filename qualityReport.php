@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$database = "agriculturesupplychain";
+$database = "agriculturesupplychain"; // Updated database name
 
 // Create connection using mysqli with error handling
 $conn = mysqli_connect($servername, $username, $password, $database);
@@ -101,6 +101,30 @@ if ($search_param) {
 
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
+
+// Get available Batch IDs for dropdown
+$batchQuery = "SELECT DISTINCT batchID FROM crop_batch ORDER BY batchID";
+$batchResult = mysqli_query($conn, $batchQuery);
+$batchOptions = [];
+while ($batchRow = mysqli_fetch_assoc($batchResult)) {
+    $batchOptions[] = $batchRow['batchID'];
+}
+
+// Get available Standard Grade IDs for dropdown
+$gradeQuery = "SELECT DISTINCT standardGradeID FROM farmer_crop_type_grade ORDER BY standardGradeID";
+$gradeResult = mysqli_query($conn, $gradeQuery);
+$gradeOptions = [];
+while ($gradeRow = mysqli_fetch_assoc($gradeResult)) {
+    $gradeOptions[] = $gradeRow['standardGradeID'];
+}
+
+// Get available Package IDs for dropdown
+$packageQuery = "SELECT DISTINCT packageID FROM packaging ORDER BY packageID";
+$packageResult = mysqli_query($conn, $packageQuery);
+$packageOptions = [];
+while ($packageRow = mysqli_fetch_assoc($packageResult)) {
+    $packageOptions[] = $packageRow['packageID'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -257,6 +281,21 @@ $result = mysqli_stmt_get_result($stmt);
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
+        
+        /* Datalist Styling */
+        .autocomplete-input {
+            position: relative;
+        }
+        
+        input[list] {
+            width: 100%;
+        }
+        
+        /* Highlight datalist options on hover */
+        datalist option:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
 
         /* Responsive adjustments */
         @media (max-width: 992px) {
@@ -309,7 +348,8 @@ $result = mysqli_stmt_get_result($stmt);
             </div>
             <div class="col-lg-6">
                 <div class="d-flex align-items-center justify-content-center">
-                    <a href="home.php" class="navbar-brand ms-lg-5">
+                    <a href="home.php" class="navbar-brand ms-lg-5 d-flex align-items-center">
+                        <img src="img/Logo.png" alt="Banglar Krishi Logo" class="me-3" style="height: 90px; width: auto;">
                         <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
                     </a>
                 </div>
@@ -494,17 +534,38 @@ $result = mysqli_stmt_get_result($stmt);
                     </div>
                     <div class="col-md-6">
                         <label for="batchID" class="form-label">Batch ID</label>
-                        <input type="text" class="form-control" id="batchID" name="batchID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="batchID" name="batchID" list="batchOptions" required>
+                            <datalist id="batchOptions">
+                                <?php foreach($batchOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a batch ID.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="standardGradeID" class="form-label">Standard Grade ID</label>
-                        <input type="text" class="form-control" id="standardGradeID" name="standardGradeID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="standardGradeID" name="standardGradeID" list="gradeOptions" required>
+                            <datalist id="gradeOptions">
+                                <?php foreach($gradeOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a standard grade ID.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="packageID" class="form-label">Package ID</label>
-                        <input type="text" class="form-control" id="packageID" name="packageID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="packageID" name="packageID" list="packageOptions" required>
+                            <datalist id="packageOptions">
+                                <?php foreach($packageOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a package ID.</div>
                     </div>
                     <div class="col-md-12">
@@ -536,17 +597,38 @@ $result = mysqli_stmt_get_result($stmt);
                     </div>
                     <div class="col-md-6">
                         <label for="edit_batchID" class="form-label">Batch ID</label>
-                        <input type="text" class="form-control" id="edit_batchID" name="batchID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_batchID" name="batchID" list="edit_batchOptions" required>
+                            <datalist id="edit_batchOptions">
+                                <?php foreach($batchOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a batch ID.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="edit_standardGradeID" class="form-label">Standard Grade ID</label>
-                        <input type="text" class="form-control" id="edit_standardGradeID" name="standardGradeID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_standardGradeID" name="standardGradeID" list="edit_gradeOptions" required>
+                            <datalist id="edit_gradeOptions">
+                                <?php foreach($gradeOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a standard grade ID.</div>
                     </div>
                     <div class="col-md-6">
                         <label for="edit_packageID" class="form-label">Package ID</label>
-                        <input type="text" class="form-control" id="edit_packageID" name="packageID" required>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_packageID" name="packageID" list="edit_packageOptions" required>
+                            <datalist id="edit_packageOptions">
+                                <?php foreach($packageOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
                         <div class="invalid-feedback">Please enter a package ID.</div>
                     </div>
                     <div class="col-md-12">
@@ -590,73 +672,87 @@ $result = mysqli_stmt_get_result($stmt);
     <script src="lib/waypoints/waypoints.min.js"></script>
     <script src="lib/counterup/counterup.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 
-    <!-- Chart.js Script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
     <script>
-        // Form validation
-        function validateForm(formId) {
-            const form = document.getElementById(formId);
-            const inputs = form.querySelectorAll('input[required]');
-            let isValid = true;
-            
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    input.classList.remove('is-invalid');
-                }
-            });
-            
-            return isValid;
-        }
-        
-        // Add Record Modal
+        // Modal functionality
         var addModal = document.getElementById("addRecordModal");
+        var editModal = document.getElementById("editRecordModal");
         var addBtn = document.getElementById("addRecordBtn");
-        
+
+        // Open add modal
         addBtn.onclick = function() {
             addModal.style.display = "block";
         }
-        
+
+        // Close add modal
         function closeAddModal() {
             addModal.style.display = "none";
-            // Reset form
             document.getElementById("recordForm").reset();
-            const inputs = document.getElementById("recordForm").querySelectorAll('input');
-            inputs.forEach(input => input.classList.remove('is-invalid'));
         }
-        
-        // Edit Record Modal
-        var editModal = document.getElementById("editRecordModal");
-        
-        function openEditModal(recordId, inspectorName, batchID, standardGradeID, packageID, remarks) {
+
+        // Open edit modal with record data
+        function openEditModal(recordId, inspectorName, batchId, gradeId, packageId, remarks) {
             document.getElementById("edit_record_id").value = recordId;
             document.getElementById("edit_inspectorName").value = inspectorName;
-            document.getElementById("edit_batchID").value = batchID;
-            document.getElementById("edit_standardGradeID").value = standardGradeID;
-            document.getElementById("edit_packageID").value = packageID;
+            document.getElementById("edit_batchID").value = batchId;
+            document.getElementById("edit_standardGradeID").value = gradeId;
+            document.getElementById("edit_packageID").value = packageId;
             document.getElementById("edit_remarks").value = remarks;
-            
             editModal.style.display = "block";
         }
-        
+
+        // Close edit modal
         function closeEditModal() {
             editModal.style.display = "none";
-            // Reset form validation styles
-            const inputs = document.getElementById("editForm").querySelectorAll('input');
-            inputs.forEach(input => input.classList.remove('is-invalid'));
+            document.getElementById("editForm").reset();
         }
-        
-        // Delete Confirmation
+
+        // Confirm delete
         function confirmDelete(recordId) {
-            if (confirm("Are you sure you want to delete this record?")) {
+            if(confirm("Are you sure you want to delete this record?")) {
                 document.getElementById("delete_record_id").value = recordId;
                 document.getElementById("deleteForm").submit();
             }
         }
-        
+
+        // Form validation
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Show validation messages
+                const inputs = form.querySelectorAll('input[required]');
+                inputs.forEach(input => {
+                    if (!input.value) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                    }
+                });
+                
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Remove validation classes on input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+
         // Close modals when clicking outside
         window.onclick = function(event) {
             if (event.target == addModal) {
@@ -666,130 +762,15 @@ $result = mysqli_stmt_get_result($stmt);
                 closeEditModal();
             }
         }
-        
-        // Auto-hide alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
-                setTimeout(() => {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
             });
-            
-            // Initialize chart with current data
-            updateChart();
-        });
-        
-        function updateChart() {
-            const rows = document.querySelectorAll('#recordsTable tbody tr');
-            const batchCounts = {};
-            const gradeData = {};
-            
-            // Count batches and collect grade info
-            rows.forEach(row => {
-                if (row.cells.length > 2) { // Make sure it's a data row
-                    const batchID = row.cells[2].textContent.trim();
-                    const gradeID = row.cells[3].textContent.trim();
-                    
-                    // Count batches
-                    if (batchCounts[batchID]) {
-                        batchCounts[batchID]++;
-                    } else {
-                        batchCounts[batchID] = 1;
-                    }
-                    
-                    // Collect grade data
-                    if (!gradeData[gradeID]) {
-                        gradeData[gradeID] = 1;
-                    } else {
-                        gradeData[gradeID]++;
-                    }
-                }
-            });
-            
-            // Prepare chart data
-            const labels = Object.keys(batchCounts);
-            const data = Object.values(batchCounts);
-            
-            // Create color array with different colors
-            const backgroundColors = labels.map((_, index) => {
-                const hue = (index * 30) % 360; // Different hue for each bar
-                return `hsla(${hue}, 70%, 60%, 0.7)`;
-            });
-            
-            const borderColors = labels.map((_, index) => {
-                const hue = (index * 30) % 360;
-                return `hsla(${hue}, 70%, 50%, 1)`;
-            });
-            
-            // Create or update chart
-            const ctx = document.getElementById('qualityChart').getContext('2d');
-            
-            if (window.qualityChart) {
-                window.qualityChart.destroy();
-            }
-            
-            window.qualityChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Records per Batch',
-                        data: data,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Number of Records by Batch ID',
-                            font: {
-                                size: 16
-                            }
-                        },
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Records: ${context.raw}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                precision: 0
-                            },
-                            title: {
-                                display: true,
-                                text: 'Number of Records'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Batch ID'
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        }, 5000);
     </script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
 </body>
-
 </html>

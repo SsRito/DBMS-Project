@@ -2,182 +2,851 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$database = "agriculturesupplychain";
+$database = "agriculturesupplychange"; // Updated database name
 
+// Create connection using mysqli with error handling
 $conn = mysqli_connect($servername, $username, $password, $database);
-
 if (!$conn) {
-    die("Sorry, failed to connect with database" . mysqli_connect_error());
+    die("Connection failed: " . mysqli_connect_error());
 }
 
-// Process form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $dob = $_POST['dob'];
-    $password = $_POST['password'];
-    $c_password = $_POST['confirm_password'];
+// Initialize message variables
+$success_message = "";
+$error_message = "";
+
+// Delete record - with prepared statement to prevent SQL injection
+if (isset($_POST['delete_record'])) {
+    $record_id = $_POST['record_id'];
     
-    // Check if passwords match
-    if ($password !== $c_password) {
-        echo "<script>alert('Passwords do not match!');</script>";
+    $deleteQuery = "DELETE FROM inspector_records WHERE record_id = ?";
+    $stmt = mysqli_prepare($conn, $deleteQuery);
+    mysqli_stmt_bind_param($stmt, "s", $record_id);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $success_message = "Record deleted successfully!";
     } else {
-        // Generate a random user ID (you might want to use a more sophisticated method)
-        $userID = 'U' . rand(100000, 999999);
-        
-        // Insert user data into database
-        $sql = "INSERT INTO user (userID, name, email, password, phone, dob, c_password) 
-                VALUES ('$userID', '$name', '$email', '$password', '$phone', '$dob', '$c_password')";
-        
-        if (mysqli_query($conn, $sql)) {
-            echo "<script>
-                    alert('Account created successfully!');
-                    window.location.href = 'login.php';
-                  </script>";
-        } else {
-            echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
-        }
+        $error_message = "Failed to delete record: " . mysqli_error($conn);
     }
+    mysqli_stmt_close($stmt);
+}
+
+// Add new record - with prepared statement
+if (isset($_POST['add_record'])) {
+    // Sanitize inputs
+    $inspector_name = mysqli_real_escape_string($conn, $_POST['inspectorName']);
+    $batchID = mysqli_real_escape_string($conn, $_POST['batchID']);
+    $standardGradeID = mysqli_real_escape_string($conn, $_POST['standardGradeID']);
+    $packageID = mysqli_real_escape_string($conn, $_POST['packageID']);
+    $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+    
+    // Generate a unique record_id (e.g., REC001, REC002)
+    $result = mysqli_query($conn, "SELECT MAX(CAST(SUBSTRING(record_id, 4) AS UNSIGNED)) as max_id FROM inspector_records WHERE record_id LIKE 'REC%'");
+    $row = mysqli_fetch_assoc($result);
+    $next_id = ($row['max_id'] ?? 0) + 1;
+    $record_id = 'REC' . sprintf('%03d', $next_id);
+    
+    // Use prepared statement for insert
+    $insertQuery = "INSERT INTO inspector_records (record_id, inspector_name, batchID, standardGradeID, packageID, remarks) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $insertQuery);
+    mysqli_stmt_bind_param($stmt, "ssssss", $record_id, $inspector_name, $batchID, $standardGradeID, $packageID, $remarks);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $success_message = "Record added successfully!";
+    } else {
+        $error_message = "Failed to add record: " . mysqli_error($conn);
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// Update record - with prepared statement
+if (isset($_POST['update_record'])) {
+    // Sanitize inputs
+    $record_id = mysqli_real_escape_string($conn, $_POST['record_id']);
+    $inspector_name = mysqli_real_escape_string($conn, $_POST['inspectorName']);
+    $batchID = mysqli_real_escape_string($conn, $_POST['batchID']);
+    $standardGradeID = mysqli_real_escape_string($conn, $_POST['standardGradeID']);
+    $packageID = mysqli_real_escape_string($conn, $_POST['packageID']);
+    $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+    
+    // Use prepared statement for update
+    $updateQuery = "UPDATE inspector_records SET inspector_name = ?, batchID = ?, standardGradeID = ?, packageID = ?, remarks = ? WHERE record_id = ?";
+    $stmt = mysqli_prepare($conn, $updateQuery);
+    mysqli_stmt_bind_param($stmt, "ssssss", $inspector_name, $batchID, $standardGradeID, $packageID, $remarks, $record_id);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $success_message = "Record updated successfully!";
+    } else {
+        $error_message = "Failed to update record: " . mysqli_error($conn);
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// Search by batch ID - with prepared statement
+$search_query = "";
+$search_param = "";
+if (isset($_GET['search']) && !empty($_GET['search_term'])) {
+    $search_term = $_GET['search_term'];
+    $search_param = "%" . $search_term . "%";
+    $search_query = "WHERE batchID LIKE ?";
+}
+
+// Get all records for display
+$query = "SELECT * FROM inspector_records " . $search_query . " ORDER BY record_id";
+$stmt = mysqli_prepare($conn, $query);
+
+// If search is active, bind the parameter
+if ($search_param) {
+    mysqli_stmt_bind_param($stmt, "s", $search_param);
+}
+
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+// Get available Batch IDs for dropdown
+$batchQuery = "SELECT DISTINCT batchID FROM crop_batch ORDER BY batchID";
+$batchResult = mysqli_query($conn, $batchQuery);
+$batchOptions = [];
+while ($batchRow = mysqli_fetch_assoc($batchResult)) {
+    $batchOptions[] = $batchRow['batchID'];
+}
+
+// Get available Standard Grade IDs for dropdown
+$gradeQuery = "SELECT DISTINCT standardGradeID FROM farmer_crop_type_grade ORDER BY standardGradeID";
+$gradeResult = mysqli_query($conn, $gradeQuery);
+$gradeOptions = [];
+while ($gradeRow = mysqli_fetch_assoc($gradeResult)) {
+    $gradeOptions[] = $gradeRow['standardGradeID'];
+}
+
+// Get available Package IDs for dropdown
+$packageQuery = "SELECT DISTINCT packageID FROM packaging ORDER BY packageID";
+$packageResult = mysqli_query($conn, $packageQuery);
+$packageOptions = [];
+while ($packageRow = mysqli_fetch_assoc($packageResult)) {
+    $packageOptions[] = $packageRow['packageID'];
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Banglar Krishi - Sign Up</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
-
-    <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-        * {
-            box-sizing: border-box;
+        /* Original styles */
+        .logout-btn {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        body, html {
+        .logout-btn:hover {
+            background-color: #dc3545 !important; /* Red on hover */
+            border-color: #dc3545 !important;
+        }
+
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             height: 100%;
-            margin: 0;
-            font-family: 'Open Sans', sans-serif;
-            background: url('../img/signup-bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        .signup-container {
-            max-width: 650px;
-            margin: 50px auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            padding: 40px 30px;
-        }
-
-        .signup-title {
+            min-width: 150px;
             text-align: center;
-            margin-bottom: 30px;
         }
 
-        .signup-title h2 {
-            font-weight: 700;
-            color: #34AD54;
+        .navbar-nav .dropdown-menu .dropdown-item {
+            text-align: center;
         }
 
-        .signup-form input {
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: 100%;
-        }
-
-        .signup-form input:focus {
-            outline: none;
-            border-color: #34AD54;
-        }
-
-        .signup-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #34AD54;
+        .dropdown-menu .dropdown-item:hover {
+            background-color: orange;
             color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
         }
 
-        .signup-btn:hover {
-            background-color: #2d9649;
+        /* New styles for full-width table section */
+        .full-width-section {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            margin-bottom: 3rem;
         }
 
-        .already-account {
+        .full-width-container {
+            width: 100%;
+            max-width: 100%;
+            padding: 2rem;
+            background-color: #f8f9fa;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        #recordsTable {
+            width: 100%;
+            table-layout: auto;
+        }
+
+        #recordsTable th, #recordsTable td {
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        #recordsTable th:first-child,
+        #recordsTable td:first-child {
+            min-width: 80px;
+        }
+
+        #recordsTable td:last-child {
+            min-width: 100px;
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.95rem;
         }
 
-        .already-account a {
-            color: #34AD54;
-            font-weight: 600;
+        .form-container {
+            width: 100%;
+        }
+
+        /* Chart container styles */
+        .chart-container {
+            width: 100%;
+            margin-top: 2rem;
+            height: 300px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
             text-decoration: none;
         }
-
-        .already-account a:hover {
-            text-decoration: underline;
+        
+        /* Center the "Add Record" button */
+        .add-record-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .edit-form-container {
+            display: none;
         }
 
-        .profile-pic-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .profile-upload {
+        /* Alert messages */
+        .alert {
+            padding: 15px;
             margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
         }
 
-        .preview-img {
-            max-width: 100px;
-            border-radius: 50%;
-            margin-top: 10px;
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        /* Datalist Styling */
+        .autocomplete-input {
+            position: relative;
+        }
+        
+        input[list] {
+            width: 100%;
+        }
+        
+        /* Highlight datalist options on hover */
+        datalist option:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .full-width-container {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                width: 90%;
+            }
         }
     </style>
+
+    <meta charset="utf-8">
+    <title>Banglar Krishi - Organic Farm Website</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
 </head>
 
 <body>
-
-    <div class="signup-container">
-        <div class="signup-title">
-            <h2>Sign Up to <span style="color: #FF9933;">বাংলার</span> কৃষি</h2>
+    <!-- Topbar Start -->
+    <div class="container-fluid px-5 d-none d-lg-block">
+        <div class="row gx-5 py-3 align-items-center">
+            <div class="col-lg-3">
+                <div class="d-flex align-items-center justify-content-start">
+                    <i class="bi bi-phone-vibrate fs-1 text-primary me-2"></i>
+                    <h2 class="mb-0">01794017804</h2>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="d-flex align-items-center justify-content-center">
+                    <a href="home.php" class="navbar-brand ms-lg-5 d-flex align-items-center">
+                        <img src="img/Logo.png" alt="Banglar Krishi Logo" class="me-3" style="height: 90px; width: auto;">
+                        <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="d-flex align-items-center justify-content-end">
+                    <!-- Profile Icon -->
+                    <a class="btn btn-primary btn-square rounded-circle me-2" href="profile.php" title="Profile">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <!-- Logout Icon -->
+                    <a class="btn btn-success btn-square rounded-circle logout-btn" href="logout.php" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>   
         </div>
+    </div>
+    <!-- Topbar End -->
 
-        <form class="signup-form" method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="tel" name="phone" placeholder="Mobile Number" required>
-            <input type="date" name="dob" placeholder="Date of Birth" required>
-            <input type="password" name="password" placeholder="Password" id="password" required>
-            <input type="password" name="confirm_password" placeholder="Confirm Password" id="confirmPassword" required>
+    <!-- Navbar Start -->
+    <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-sm py-3 py-lg-0 px-3 px-lg-5">
+        <a href="home.php" class="navbar-brand d-flex d-lg-none">
+            <h1 class="m-0 display-4 text-secondary"><span class="text-white">Banglar</span>Krishi</h1>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav mx-auto py-0 d-flex align-items-center text-center">
+                <a href="home.php" class="nav-item nav-link px-3">Home</a>
+                <a href="gradingCriteria.php" class="nav-item nav-link px-3">Grading Criteria</a>
+                <a href="qualityReport.php" class="nav-item nav-link active px-3">Inspector Report</a>
+                <a href="qualityTrendAnalysis.php" class="nav-item nav-link px-3">Quality Trend</a>
+                <a href="transportationTracking.php" class="nav-item nav-link px-3">Transportation Tracking</a>
+                <a href="trackingOfGradedProducts.php" class="nav-item nav-link px-3">Graded Product Tracking</a>
+                <a href="packagingTrackingSystem.php" class="nav-item nav-link px-3">Packaging Tracking</a>
+                
+                <div class="nav-item dropdown px-3">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">More</a>
+                    <div class="dropdown-menu text-center">
+                        <a href="service.php" class="dropdown-item">Service</a>
+                        <a href="contact.php" class="dropdown-item">Contact Us</a>
+                        <a href="about.php" class="dropdown-item">About</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Navbar End -->
 
-            <button type="submit" class="signup-btn">Create Account</button>
-        </form>
+    <!-- Hero Start -->
+    <div class="container-fluid bg-primary py-5 bg-hero-inspect mb-5">
+        <div class="container h-100 d-flex align-items-center justify-content-center">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="display-1 text-white mb-0"></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Hero End -->
 
-        <div class="already-account">
-            Already have an account? <a href="login.php">Log in</a>
+    <!-- Alert Messages -->
+    <?php if(!empty($success_message)): ?>
+    <div class="container mb-3">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?php echo $success_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <?php if(!empty($error_message)): ?>
+    <div class="container mb-3">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo $error_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Search Form in Container -->
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <form method="GET" action="qualityReport.php">
+                    <div class="input-group">
+                        <input type="text" name="search_term" class="form-control p-3" placeholder="Search by Batch ID..." value="<?php echo isset($_GET['search_term']) ? htmlspecialchars($_GET['search_term']) : ''; ?>">
+                        <button type="submit" name="search" class="btn btn-primary px-4"><i class="bi bi-search"></i></button>
+                        <?php if(isset($_GET['search'])): ?>
+                            <a href="qualityReport.php" class="btn btn-secondary px-4">Clear</a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Add Record Button (Centered) -->
+    <div class="container mb-4">
+        <div class="add-record-btn-container">
+            <button id="addRecordBtn" class="btn btn-primary btn-lg">Add New Record</button>
+        </div>
+    </div>
 
+    <!-- Inspector Records and Chart Start - FULL WIDTH -->
+    <div class="container-fluid full-width-section">
+        <div class="full-width-container">
+            <h2 class="text-center mb-4">Inspector Records and Quality Reports</h2>
+            
+            <!-- Records Table -->
+            <div class="table-responsive mb-4">
+                <h3>Current Records</h3>
+                <?php if(isset($_GET['search']) && !empty($_GET['search_term'])): ?>
+                    <p>Showing results for: "<?php echo htmlspecialchars($_GET['search_term']); ?>"</p>
+                <?php endif; ?>
+                
+                <table id="recordsTable" class="table table-bordered text-center">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Record ID</th>
+                            <th>Inspector Name</th>
+                            <th>Batch ID</th>
+                            <th>Standard Grade ID</th>
+                            <th>Package ID</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if (mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
+                        ?>
+                        <tr data-id="<?php echo htmlspecialchars($row['record_id']); ?>">
+                            <td><?php echo htmlspecialchars($row['record_id']); ?></td>
+                            <td><?php echo htmlspecialchars($row['inspector_name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['batchID']); ?></td>
+                            <td><?php echo htmlspecialchars($row['standardGradeID']); ?></td>
+                            <td><?php echo htmlspecialchars($row['packageID']); ?></td>
+                            <td><?php echo htmlspecialchars($row['remarks']); ?></td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" onclick="openEditModal('<?php echo htmlspecialchars($row['record_id']); ?>', '<?php echo htmlspecialchars($row['inspector_name']); ?>', '<?php echo htmlspecialchars($row['batchID']); ?>', '<?php echo htmlspecialchars($row['standardGradeID']); ?>', '<?php echo htmlspecialchars($row['packageID']); ?>', '<?php echo htmlspecialchars($row['remarks']); ?>')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="confirmDelete('<?php echo htmlspecialchars($row['record_id']); ?>')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <?php
+                            }
+                        } else {
+                            echo "<tr><td colspan='7' class='text-center'>No records found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Chart Container -->
+            <div class="chart-container">
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Inspector Records and Chart End -->
+
+    <!-- Add Record Modal -->
+    <div id="addRecordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddModal()">&times;</span>
+            <h3>Add New Record</h3>
+            <form id="recordForm" method="POST" action="qualityReport.php" onsubmit="return validateForm('recordForm')">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="inspectorName" class="form-label">Inspector Name</label>
+                        <input type="text" class="form-control" id="inspectorName" name="inspectorName" required>
+                        <div class="invalid-feedback">Please enter an inspector name.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="batchID" class="form-label">Batch ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="batchID" name="batchID" list="batchOptions" required>
+                            <datalist id="batchOptions">
+                                <?php foreach($batchOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a batch ID.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="standardGradeID" class="form-label">Standard Grade ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="standardGradeID" name="standardGradeID" list="gradeOptions" required>
+                            <datalist id="gradeOptions">
+                                <?php foreach($gradeOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a standard grade ID.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="packageID" class="form-label">Package ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="packageID" name="packageID" list="packageOptions" required>
+                            <datalist id="packageOptions">
+                                <?php foreach($packageOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a package ID.</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="remarks" class="form-label">Remarks</label>
+                        <input type="text" class="form-control" id="remarks" name="remarks" required>
+                        <div class="invalid-feedback">Please enter remarks.</div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <button type="submit" name="add_record" class="btn btn-primary">Add Record</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Record Modal -->
+    <div id="editRecordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>Edit Record</h3>
+            <form id="editForm" method="POST" action="qualityReport.php" onsubmit="return validateForm('editForm')">
+                <input type="hidden" id="edit_record_id" name="record_id">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="edit_inspectorName" class="form-label">Inspector Name</label>
+                        <input type="text" class="form-control" id="edit_inspectorName" name="inspectorName" required>
+                        <div class="invalid-feedback">Please enter an inspector name.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_batchID" class="form-label">Batch ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_batchID" name="batchID" list="edit_batchOptions" required>
+                            <datalist id="edit_batchOptions">
+                                <?php foreach($batchOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a batch ID.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_standardGradeID" class="form-label">Standard Grade ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_standardGradeID" name="standardGradeID" list="edit_gradeOptions" required>
+                            <datalist id="edit_gradeOptions">
+                                <?php foreach($gradeOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a standard grade ID.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_packageID" class="form-label">Package ID</label>
+                        <div class="autocomplete-input">
+                            <input type="text" class="form-control" id="edit_packageID" name="packageID" list="edit_packageOptions" required>
+                            <datalist id="edit_packageOptions">
+                                <?php foreach($packageOptions as $option): ?>
+                                    <option value="<?php echo htmlspecialchars($option); ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="invalid-feedback">Please enter a package ID.</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="edit_remarks" class="form-label">Remarks</label>
+                        <input type="text" class="form-control" id="edit_remarks" name="remarks" required>
+                        <div class="invalid-feedback">Please enter remarks.</div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <button type="submit" name="update_record" class="btn btn-primary">Update Record</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Form (Hidden) -->
+    <form id="deleteForm" method="POST" action="qualityReport.php" style="display: none;">
+        <input type="hidden" id="delete_record_id" name="record_id">
+        <input type="hidden" name="delete_record" value="1">
+    </form>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-footer bg-primary text-white mt-5">
+        <!-- Footer content remains the same as in the original template -->
+    </div>
+    <div class="container-fluid bg-dark text-white py-4">
+        <div class="container text-center">
+            <p class="mb-0">&copy; <a class="text-secondary fw-bold" href="#">Banglar Krishi</a>. All Rights Reserved.</p>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-secondary py-3 fs-4 back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/counterup/counterup.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <script>
+        // Modal functionality
+        var addModal = document.getElementById("addRecordModal");
+        var editModal = document.getElementById("editRecordModal");
+        var addBtn = document.getElementById("addRecordBtn");
+
+        // Open add modal
+        addBtn.onclick = function() {
+            addModal.style.display = "block";
+        }
+
+        // Close add modal
+        function closeAddModal() {
+            addModal.style.display = "none";
+            document.getElementById("recordForm").reset();
+        }
+
+        // Open edit modal with record data
+        function openEditModal(recordId, inspectorName, batchId, gradeId, packageId, remarks) {
+            document.getElementById("edit_record_id").value = recordId;
+            document.getElementById("edit_inspectorName").value = inspectorName;
+            document.getElementById("edit_batchID").value = batchId;
+            document.getElementById("edit_standardGradeID").value = gradeId;
+            document.getElementById("edit_packageID").value = packageId;
+            document.getElementById("edit_remarks").value = remarks;
+            editModal.style.display = "block";
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            editModal.style.display = "none";
+            document.getElementById("editForm").reset();
+        }
+
+        // Confirm delete
+        function confirmDelete(recordId) {
+            if(confirm("Are you sure you want to delete this record?")) {
+                document.getElementById("delete_record_id").value = recordId;
+                document.getElementById("deleteForm").submit();
+            }
+        }
+
+        // Form validation
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Show validation messages
+                const inputs = form.querySelectorAll('input[required]');
+                inputs.forEach(input => {
+                    if (!input.value) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                    }
+                });
+                
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Remove validation classes on input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target == addModal) {
+                closeAddModal();
+            }
+            if (event.target == editModal) {
+                closeEditModal();
+            }
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Initialize Chart
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get data from the table for chart
+            const table = document.getElementById('recordsTable');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            // Count occurrences of each grade
+            const gradeData = {};
+            
+            rows.forEach(row => {
+                const grade = row.cells[3].textContent.trim();
+                if (grade) {
+                    if (gradeData[grade]) {
+                        gradeData[grade]++;
+                    } else {
+                        gradeData[grade] = 1;
+                    }
+                }
+            });
+            
+            // Prepare data for Chart.js
+            const labels = Object.keys(gradeData);
+            const data = Object.values(gradeData);
+            
+            // Generate random colors for each grade
+            const backgroundColors = labels.map(() => 
+                `rgba(${Math.floor(Math.random() * 200)}, ${Math.floor(Math.random() * 200)}, ${Math.floor(Math.random() * 200)}, 0.6)`
+            );
+            
+            // Create chart
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            const qualityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Distribution of Standard Grades',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribution of Standard Grades in Inspector Records'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Records'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Standard Grade ID'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -294,7 +294,8 @@ $result = mysqli_query($conn, $sql);
             </div>
             <div class="col-lg-6">
                 <div class="d-flex align-items-center justify-content-center">
-                    <a href="home.php" class="navbar-brand ms-lg-5">
+                    <a href="home.php" class="navbar-brand ms-lg-5 d-flex align-items-center">
+                        <img src="img/Logo.png" alt="Banglar Krishi Logo" class="me-3" style="height: 90px; width: auto;">
                         <h1 class="m-0 display-4 text-primary"><span class="text-secondary">বাংলার </span>কৃষি</h1>
                     </a>
                 </div>
