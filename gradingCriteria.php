@@ -427,6 +427,11 @@ if (isset($_POST['update'])) {
                     <input type="text" id="gradingTableSearch" class="form-control" placeholder="Search table...">
                 </div>
             </div>
+            <div class="mb-3 text-center">
+                <button id="addProductBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Entry
+                </button>
+            </div>
             
             <div class="table-responsive">
                 <table class="product-table" id="gradingTable">
@@ -497,11 +502,6 @@ if (isset($_POST['update'])) {
                         ?>
                     </tbody>
                 </table>
-            </div>
-            <div class="mb-3 text-center">
-                <button id="addProductBtn" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add New Entry
-                </button>
             </div>
         </div>
         
