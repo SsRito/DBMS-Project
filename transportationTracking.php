@@ -713,7 +713,50 @@ $batchOptionsJSON = json_encode($batchOptions);
                 </div>
             </div>
         </div>
-
+        
+        <!-- Edit Vehicle Modal -->
+<div class="modal fade" id="editVehicleModal" tabindex="-1" aria-labelledby="editVehicleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="editVehicleModalLabel">Edit Vehicle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="" id="editVehicleForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editVehicleID" class="form-label">Vehicle ID</label>
+                        <input type="text" class="form-control" id="editVehicleID" name="editVehicleID" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editVehicleType" class="form-label">Vehicle Type</label>
+                        <select class="form-control" id="editVehicleType" name="editVehicleType" required>
+                            <option value="">Select Vehicle Type</option>
+                            <option value="Truck">Truck</option>
+                            <option value="Van">Van</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Mini Truck">Mini Truck</option>
+                            <option value="Refrigerated Van">Refrigerated Van</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editBatchID" class="form-label">Batch ID</label>
+                        <input type="text" class="form-control" id="editBatchID" name="editBatchID" required>
+                        <small class="text-muted">Start typing to see available batch IDs</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLocation" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="editLocation" name="editLocation" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="update_vehicle" class="btn btn-warning">Update Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
         <!-- Delete Vehicle Modal -->
         <div class="modal fade" id="deleteVehicleModal" tabindex="-1" aria-labelledby="deleteVehicleModalLabel" aria-hidden="true">
