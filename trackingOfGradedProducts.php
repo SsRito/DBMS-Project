@@ -30,15 +30,34 @@ if (isset($_POST['add_track'])) {
     $cropGrade = $_POST['cropGrade'];
     $location = $_POST['location'];
     
-    $add_sql = "INSERT INTO graded_p_track (trackID, standardGradeID, warehouseID, cropGrade, location) 
-                VALUES ('$trackID', '$standardGradeID', '$warehouseID', '$cropGrade', '$location')";
-    
-    if (mysqli_query($conn, $add_sql)) {
-        $success_message = "New record added successfully";
-    } else {
-        $error_message = "Error adding record: " . mysqli_error($conn);
+    try {
+        // Check if track ID already exists
+        $check_query = "SELECT trackID FROM graded_p_track WHERE trackID = '$trackID'";
+        $check_result = mysqli_query($conn, $check_query);
+        
+        if (!$check_result) {
+            throw new Exception("Database query error: " . mysqli_error($conn));
+        }
+        
+        if (mysqli_num_rows($check_result) > 0) {
+            // Track ID already exists
+            $error_message = "Error: Track ID '$trackID' already exists. Please use a unique Track ID.";
+        } else {
+            // Track ID is unique, proceed with insertion
+            $add_sql = "INSERT INTO graded_p_track (trackID, standardGradeID, warehouseID, cropGrade, location) 
+                        VALUES ('$trackID', '$standardGradeID', '$warehouseID', '$cropGrade', '$location')";
+            
+            if (mysqli_query($conn, $add_sql)) {
+                $success_message = "New record added successfully";
+            } else {
+                $error_message = "Error adding record: " . mysqli_error($conn);
+            }
+        }
+    } catch (Exception $e) {
+        $error_message = "Error: " . $e->getMessage();
     }
 }
+
 
 // Handle Update Operation
 if (isset($_POST['update_track'])) {

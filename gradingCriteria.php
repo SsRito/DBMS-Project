@@ -551,7 +551,7 @@ if (isset($_POST['update'])) {
                         <select name="cropTypeID" class="form-control" required>
                             <option value="">Select Crop Type</option>
                             <?php
-                            // Fetch crop types for dropdown
+                            
                             $cropTypes = $conn->query("SELECT cropTypeID, cropType FROM farmer_crop_type");
                             while ($cropType = $cropTypes->fetch_assoc()) {
                                 echo "<option value='{$cropType['cropTypeID']}'>{$cropType['cropTypeID']} - {$cropType['cropType']}</option>";
