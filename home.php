@@ -437,7 +437,7 @@
                         </div>
                         <h4>Product Tracking</h4>
                         <p>End-to-end tracking system for graded agricultural products.</p>
-                        <a href="trackingOfGradingProducts.php" class="btn btn-sm btn-primary mt-2">Track Products</a>
+                        <a href="trackingOfGradedProducts.php" class="btn btn-sm btn-primary mt-2">Track Products</a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
