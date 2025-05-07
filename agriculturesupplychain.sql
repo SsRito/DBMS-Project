@@ -1,9 +1,9 @@
--- phpMyAdmin SQL Dump
+-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 06, 2025 at 06:03 PM
+-- Generation Time: May 07, 2025 at 02:12 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -113,7 +113,7 @@ INSERT INTO `delivery` (`deliveryID`, `location`, `dateTime`, `batchID`, `vendor
 --
 
 CREATE TABLE `farmer` (
-  `farmerID` char(5) NOT NULL,
+  `farmerID` varchar(5) NOT NULL,
   `farmerName` varchar(50) NOT NULL,
   `contactInfo` varchar(11) DEFAULT NULL,
   `f_district` varchar(50) DEFAULT NULL,
@@ -145,7 +145,7 @@ INSERT INTO `farmer` (`farmerID`, `farmerName`, `contactInfo`, `f_district`, `f_
 --
 
 CREATE TABLE `farmer_crop` (
-  `farmerCropID` char(5) NOT NULL,
+  `farmerCropID` varchar(5) NOT NULL,
   `quantity` decimal(10,2) NOT NULL,
   `season` varchar(50) DEFAULT NULL,
   `cropID` varchar(15) NOT NULL,
@@ -179,7 +179,7 @@ INSERT INTO `farmer_crop` (`farmerCropID`, `quantity`, `season`, `cropID`, `farm
 CREATE TABLE `farmer_crop_type` (
   `cropTypeID` varchar(30) NOT NULL,
   `cropType` varchar(50) NOT NULL,
-  `farmerCropID` char(5) NOT NULL
+  `farmerCropID` varchar(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -231,8 +231,8 @@ INSERT INTO `farmer_crop_type_grade` (`standardGradeID`, `quantity`, `cropGrade`
 ('SG0007', 1600.00, 'A', 9.00, 'Cylindrical', 'Yellow', 0, 'CT-Maize-BARI Hybrid-007'),
 ('SG0008', 1900.00, 'B', 6.50, 'Round', 'Red', 0, 'CT-Onion-BARI Piaz-008'),
 ('SG0009', 1400.00, 'A', 12.00, 'Oval', 'Green-Yellow', 0, 'CT-Mango-Fazli-009'),
-('SG0010', 1800.00, 'A', 25.00, 'Oblong', 'Green', 0, 'CT-Jackfruit-Khaja-010'),
-('SG0011', 1400.00, 'A', 5.60, 'Uniform', 'Golden', 0, 'CT-Rice-BIRRI29-011'),
+('SG0010', 1800.00, 'C', 25.00, 'Oblong', 'Green', 0, 'CT-Rice-BIRRI29-011'),
+('SG0011', 1400.00, 'C', 5.60, 'Uniform', 'Golden', 1, 'CT-Jackfruit-Khaja-010'),
 ('SG0012', 1200.00, 'B', 5.00, 'Variable', 'Brown', 0, 'CT-Rice-BIRRI39-012');
 
 -- --------------------------------------------------------
@@ -288,10 +288,10 @@ INSERT INTO `grading_details` (`past_problem`, `present_situation`, `changes`) V
 --
 
 CREATE TABLE `inspector_records` (
-  `record_id` char(6) NOT NULL,
+  `record_id` varchar(10) NOT NULL,
   `inspector_name` varchar(80) DEFAULT NULL,
-  `batchID` varchar(50) DEFAULT NULL,
-  `standardGradeID` varchar(50) DEFAULT NULL,
+  `batchID` varchar(10) DEFAULT NULL,
+  `standardGradeID` varchar(30) DEFAULT NULL,
   `packageID` varchar(50) DEFAULT NULL,
   `remarks` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -302,7 +302,9 @@ CREATE TABLE `inspector_records` (
 
 INSERT INTO `inspector_records` (`record_id`, `inspector_name`, `batchID`, `standardGradeID`, `packageID`, `remarks`) VALUES
 ('INS001', 'Tasin Uddin', 'B0001', 'SG0001', 'P0001', 'Good'),
-('INS002', 'Rahim Uddin', 'B0002', 'SG0002', 'P0002', 'Excellent');
+('INS002', 'Rahim Uddin', 'B0002', 'SG0002', 'P0002', 'Excellent'),
+('REC001', 'Abrar Uddin', 'B0006', 'SG0007', 'P0004', 'Good'),
+('REC002', 'Asad Mia', 'B0008', 'SG0009', 'P0005', 'Average');
 
 -- --------------------------------------------------------
 
@@ -311,7 +313,7 @@ INSERT INTO `inspector_records` (`record_id`, `inspector_name`, `batchID`, `stan
 --
 
 CREATE TABLE `packaging` (
-  `packageID` char(5) NOT NULL,
+  `packageID` varchar(10) NOT NULL,
   `packagingDescription` varchar(100) DEFAULT NULL,
   `materialType` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -350,8 +352,8 @@ CREATE TABLE `packaging_tracking` (
 --
 
 INSERT INTO `packaging_tracking` (`id`, `product_name`, `batch_number`, `pack_date`, `location`, `created_at`) VALUES
-(1, 'P0001', 'B0001', '2025-04-04', 'Bangladesh', '2025-04-24 15:50:21'),
-(5, 'P0002', 'B0002', '2025-04-26', 'Japan', '2025-04-25 12:36:49');
+(1, 'P0001', 'B0001', '2025-04-04', 'Bangladesh', '2025-04-24 21:20:21'),
+(5, 'P0002', 'B0002', '2025-04-26', 'Japan', '2025-04-25 18:06:49');
 
 -- --------------------------------------------------------
 
@@ -360,7 +362,7 @@ INSERT INTO `packaging_tracking` (`id`, `product_name`, `batch_number`, `pack_da
 --
 
 CREATE TABLE `retailer` (
-  `rvendorLicense` char(6) NOT NULL,
+  `rvendorLicense` varchar(10) NOT NULL,
   `v_name` varchar(50) NOT NULL,
   `v_contactInfo` varchar(11) DEFAULT NULL,
   `v_location` varchar(50) DEFAULT NULL
@@ -384,13 +386,13 @@ INSERT INTO `retailer` (`rvendorLicense`, `v_name`, `v_contactInfo`, `v_location
 --
 
 CREATE TABLE `sensor` (
-  `sensorID` char(5) NOT NULL,
+  `sensorID` varchar(10) NOT NULL,
   `sensorType` varchar(50) NOT NULL,
   `installationDate` date DEFAULT NULL,
   `expiaryPeriod` int(11) DEFAULT NULL,
   `warehouseID` varchar(10) DEFAULT NULL,
   `vehicleID` varchar(10) DEFAULT NULL
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sensor`
@@ -413,7 +415,7 @@ INSERT INTO `sensor` (`sensorID`, `sensorType`, `installationDate`, `expiaryPeri
 --
 
 CREATE TABLE `sensor_data` (
-  `sensorDataID` char(6) NOT NULL,
+  `sensorDataID` varchar(10) NOT NULL,
   `date` datetime NOT NULL,
   `reading` varchar(255) NOT NULL,
   `sensorID` varchar(10) NOT NULL
@@ -444,8 +446,8 @@ INSERT INTO `sensor_data` (`sensorDataID`, `date`, `reading`, `sensorID`) VALUES
 --
 
 CREATE TABLE `transport` (
-  `vehicleID`  varchar(50) NOT NULL,
-  `packageID` char(5),
+  `vehicleID` varchar(10) NOT NULL,
+  `packageID` varchar(10) NOT NULL,
   `destination` varchar(100) NOT NULL,
   `departureDate` datetime DEFAULT NULL,
   `arrivalDate` datetime DEFAULT NULL,
@@ -470,10 +472,9 @@ INSERT INTO `transport` (`vehicleID`, `packageID`, `destination`, `departureDate
 --
 
 CREATE TABLE `transportation_vehicles` (
-  `id` int(11) NOT NULL,
   `vehicle_id` varchar(50) NOT NULL,
   `vehicle_type` varchar(50) NOT NULL,
-  `batch_id` varchar(50) NOT NULL,
+  `batchID` varchar(10) NOT NULL,
   `location` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -483,9 +484,10 @@ CREATE TABLE `transportation_vehicles` (
 -- Dumping data for table `transportation_vehicles`
 --
 
-INSERT INTO `transportation_vehicles` (`id`, `vehicle_id`, `vehicle_type`, `batch_id`, `location`, `created_at`, `updated_at`) VALUES
-(2, 'TRK0001', 'Truck', 'B0001', 'Rajshahi', '2025-04-25 14:37:11', '2025-04-25 14:37:11'),
-(5, 'TRK0002', 'Truck', 'B0003', 'Rangpur', '2025-04-25 14:58:46', '2025-04-25 14:58:46');
+INSERT INTO `transportation_vehicles` (`vehicle_id`, `vehicle_type`, `batchID`, `location`, `created_at`, `updated_at`) VALUES
+('TRK0001', 'Truck', 'B0001', 'Rajshahi', '2025-04-25 20:07:11', '2025-04-25 20:07:11'),
+('TRK0002', 'Truck', 'B0003', 'Rangpur', '2025-04-25 20:28:46', '2025-04-25 20:28:46'),
+('TRK0003', 'Truck', 'B0008', 'Rajshahi', '2025-05-06 21:54:03', '2025-05-06 21:54:03');
 
 -- --------------------------------------------------------
 
@@ -494,7 +496,7 @@ INSERT INTO `transportation_vehicles` (`id`, `vehicle_id`, `vehicle_type`, `batc
 --
 
 CREATE TABLE `user` (
-  `userID` char(6) NOT NULL,
+  `userID` varchar(10) NOT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
@@ -518,7 +520,7 @@ INSERT INTO `user` (`userID`, `name`, `email`, `password`, `phone`, `dob`, `c_pa
 --
 
 CREATE TABLE `vendor` (
-  `vendorLicense` char(6) NOT NULL,
+  `vendorLicense` varchar(12) NOT NULL,
   `v_name` varchar(50) NOT NULL,
   `v_contactInfo` varchar(11) DEFAULT NULL,
   `v_location` varchar(50) DEFAULT NULL
@@ -649,29 +651,29 @@ ALTER TABLE `farmer_crop_type_grade`
 --
 ALTER TABLE `graded_p_track`
   ADD PRIMARY KEY (`trackID`),
-  ADD KEY `fk01` (`standardGradeID`),
-  ADD KEY `fk02` (`warehouseID`);
+  ADD KEY `1` (`standardGradeID`),
+  ADD KEY `2` (`warehouseID`);
+
+--
+-- Indexes for table `grading_details`
+--
+ALTER TABLE `grading_details`
+  ADD PRIMARY KEY (`past_problem`);
 
 --
 -- Indexes for table `inspector_records`
 --
 ALTER TABLE `inspector_records`
   ADD PRIMARY KEY (`record_id`),
-  ADD KEY `fk03` (`batchID`),
-  ADD KEY `fk04` (`packageID`),
-  ADD KEY `fk05` (`standardGradeID`);
+  ADD KEY `4` (`packageID`),
+  ADD KEY `3` (`batchID`),
+  ADD KEY `5` (`standardGradeID`);
 
 --
 -- Indexes for table `packaging`
 --
 ALTER TABLE `packaging`
   ADD PRIMARY KEY (`packageID`);
-
---
--- Indexes for table `packaging_tracking`
---
-ALTER TABLE `packaging_tracking`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `retailer`
@@ -699,14 +701,14 @@ ALTER TABLE `sensor_data`
 --
 ALTER TABLE `transport`
   ADD PRIMARY KEY (`vehicleID`),
-  ADD KEY `transport_ibfk_1` (`packageID`);
+  ADD KEY `packageID` (`packageID`);
 
 --
 -- Indexes for table `transportation_vehicles`
 --
 ALTER TABLE `transportation_vehicles`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk06` (`batch_id`);
+  ADD PRIMARY KEY (`vehicle_id`),
+  ADD KEY `fk1` (`batchID`);
 
 --
 -- Indexes for table `user`
@@ -740,51 +742,51 @@ ALTER TABLE `wholeseller`
 -- Constraints for table `crop_batch`
 --
 ALTER TABLE `crop_batch`
-  ADD CONSTRAINT `crop_batch_ibfk_1` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `crop_batch_ibfk_2` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `crop_batch_ibfk_1` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`),
+  ADD CONSTRAINT `crop_batch_ibfk_2` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`);
 
 --
 -- Constraints for table `delivery`
 --
 ALTER TABLE `delivery`
-  ADD CONSTRAINT `delivery_ibfk_1` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `delivery_ibfk_2` FOREIGN KEY (`vendorLicense`) REFERENCES `vendor` (`vendorLicense`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `delivery_ibfk_3` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `delivery_ibfk_4` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `delivery_ibfk_1` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`),
+  ADD CONSTRAINT `delivery_ibfk_2` FOREIGN KEY (`vendorLicense`) REFERENCES `vendor` (`vendorLicense`),
+  ADD CONSTRAINT `delivery_ibfk_3` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`),
+  ADD CONSTRAINT `delivery_ibfk_4` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`);
 
 --
 -- Constraints for table `farmer_crop`
 --
 ALTER TABLE `farmer_crop`
-  ADD CONSTRAINT `farmer_crop_ibfk_1` FOREIGN KEY (`cropID`) REFERENCES `crop` (`cropID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `farmer_crop_ibfk_2` FOREIGN KEY (`farmerID`) REFERENCES `farmer` (`farmerID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `farmer_crop_ibfk_1` FOREIGN KEY (`cropID`) REFERENCES `crop` (`cropID`),
+  ADD CONSTRAINT `farmer_crop_ibfk_2` FOREIGN KEY (`farmerID`) REFERENCES `farmer` (`farmerID`);
 
 --
 -- Constraints for table `farmer_crop_type`
 --
 ALTER TABLE `farmer_crop_type`
-  ADD CONSTRAINT `farmer_crop_type_ibfk_1` FOREIGN KEY (`farmerCropID`) REFERENCES `farmer_crop` (`farmerCropID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `farmer_crop_type_ibfk_1` FOREIGN KEY (`farmerCropID`) REFERENCES `farmer_crop` (`farmerCropID`);
 
 --
 -- Constraints for table `farmer_crop_type_grade`
 --
 ALTER TABLE `farmer_crop_type_grade`
-  ADD CONSTRAINT `farmer_crop_type_grade_ibfk_1` FOREIGN KEY (`cropTypeID`) REFERENCES `farmer_crop_type` (`cropTypeID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `farmer_crop_type_grade_ibfk_1` FOREIGN KEY (`cropTypeID`) REFERENCES `farmer_crop_type` (`cropTypeID`);
 
 --
 -- Constraints for table `graded_p_track`
 --
 ALTER TABLE `graded_p_track`
-  ADD CONSTRAINT `fk01` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk02` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `1` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `2` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `inspector_records`
 --
 ALTER TABLE `inspector_records`
-  ADD CONSTRAINT `fk03` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk04` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk05` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `3` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `4` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `5` FOREIGN KEY (`standardGradeID`) REFERENCES `farmer_crop_type_grade` (`standardGradeID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `retailer`
@@ -796,26 +798,26 @@ ALTER TABLE `retailer`
 -- Constraints for table `sensor`
 --
 ALTER TABLE `sensor`
-  ADD CONSTRAINT `sensor_ibfk_1` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `sensor_ibfk_2` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `sensor_ibfk_1` FOREIGN KEY (`warehouseID`) REFERENCES `warehouse` (`warehouseID`),
+  ADD CONSTRAINT `sensor_ibfk_2` FOREIGN KEY (`vehicleID`) REFERENCES `transport` (`vehicleID`);
 
 --
 -- Constraints for table `sensor_data`
 --
 ALTER TABLE `sensor_data`
-  ADD CONSTRAINT `sensor_data_ibfk_1` FOREIGN KEY (`sensorID`) REFERENCES `sensor` (`sensorID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `sensor_data_ibfk_1` FOREIGN KEY (`sensorID`) REFERENCES `sensor` (`sensorID`);
 
 --
 -- Constraints for table `transport`
 --
 ALTER TABLE `transport`
-  ADD CONSTRAINT `transport_ibfk_1` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `transport_ibfk_1` FOREIGN KEY (`packageID`) REFERENCES `packaging` (`packageID`);
 
 --
 -- Constraints for table `transportation_vehicles`
 --
 ALTER TABLE `transportation_vehicles`
-  ADD CONSTRAINT `fk06` FOREIGN KEY (`batch_id`) REFERENCES `crop_batch` (`batchID`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk1` FOREIGN KEY (`batchID`) REFERENCES `crop_batch` (`batchID`);
 
 --
 -- Constraints for table `wholeseller`
